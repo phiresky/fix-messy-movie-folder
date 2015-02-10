@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import movieid.util.Util;
 
-import org.jsoup.HttpStatusException;
+import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -18,15 +18,18 @@ public class GoogleSearchMovieIdentifier extends FilenameMovieIdentifier {
 
 			System.out.println("getting " + url);
 			try {
+
+				Response resp = Jsoup.connect(url).userAgent(Util.randomUserAgent())
+				/* .referrer(REFERRER) */.followRedirects(true).ignoreHttpErrors(true).execute();
+
 				Document doc;
-				try {
-					doc = Jsoup.connect(url).userAgent(Util.randomUserAgent())
-					/* .referrer(REFERRER) */.followRedirects(true).get();
-				} catch (HttpStatusException e) {
-					if (e.getStatusCode() == 503 || e.getStatusCode() == 502) {
-						throw new RuntimeException("Google wants captcha");
-					} else
-						throw e;
+				if (resp.statusCode() == 503 || resp.statusCode() == 502) {
+					doc = resp.parse();
+					solveCaptcha(doc.select("img").first().absUrl("src"));
+				} else if (resp.statusCode() >= 300) {
+					throw new RuntimeException(resp.statusCode() + " " + resp.statusMessage());
+				} else {
+					doc = resp.parse();
 				}
 				Element ele = doc.select("a[href*=//www.imdb.com/title/tt]").first();
 				if (ele == null) {
@@ -39,6 +42,10 @@ public class GoogleSearchMovieIdentifier extends FilenameMovieIdentifier {
 			}
 			return null;
 		});
+	}
+
+	private static void solveCaptcha(String absUrl) {
+		throw new RuntimeException("Google wants captcha.");
 	}
 
 	private static final String REFERRER = "https://www.google.com/";

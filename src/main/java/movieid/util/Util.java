@@ -149,6 +149,13 @@ public class Util {
 			}
 		}
 		return userAgentsCache.get(ThreadLocalRandom.current().nextInt(userAgentsCache.size()));
-
+	}
+	
+	private static void openUrlInBrowser(String url) {
+		try {
+			java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+		} catch (Exception e) {
+			System.out.println("Open the following URL in a Browser: " + url);
+		}
 	}
 }
