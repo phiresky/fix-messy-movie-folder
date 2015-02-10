@@ -1,7 +1,14 @@
 package movieid;
 
+import static java.util.stream.Collectors.toList;
+
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +28,8 @@ public class MovieInfo {
 	private ImdbId imdbId;
 	@Getter
 	private Map<String, String> information;
+	private static Set<String> multivalueKeys = new HashSet<String>(Arrays.asList("Country",
+			"Genre"));
 
 	public boolean hasMetadata() {
 		return hasMetadata;
@@ -63,5 +72,24 @@ public class MovieInfo {
 		if (path != null)
 			format = format.replace("{Extension}", Util.getFileExtension(path));
 		return format;
+	}
+
+	public List<String> getInformationValues(String name) {
+		if (multivalueKeys.contains(name))
+			return Stream.of(information.get(name).split(",")).map(String::trim).collect(toList());
+		return Arrays.asList(information.get(name));
+	}
+
+	/**
+	 * @return movie runtime in minutes
+	 */
+	public int getRuntime() {
+		String runtime = information.get("Runtime");
+		runtime = runtime.replace(" min", "");
+		try {
+			return Integer.parseInt(runtime);
+		} catch (NumberFormatException e) {
+			return -1;
+		}
 	}
 }

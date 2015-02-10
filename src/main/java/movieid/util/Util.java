@@ -61,19 +61,19 @@ public class Util {
 	 * 
 	 * @param path
 	 *            movie filename
-	 * @return duration in seconds, NaN if could not read
+	 * @return duration in minutes, NaN if could not read
 	 */
-	public static double getMovieDuration(Path path) {
+	public static int getMovieRuntime(Path path) {
 
 		try {
 			Process p = new ProcessBuilder("ffprobe", "-loglevel", "quiet", "-show_format_entry",
 					"duration", "-of", "json", path.toAbsolutePath().toString()).start();
 			String duration = new JSONObject(new JSONTokener(p.getInputStream())).getJSONObject(
 					"format").getString("duration");
-			return Double.parseDouble(duration);
+			return (int) Math.round(Double.parseDouble(duration) / 60);
 		} catch (IOException e) {
 			System.out.println("Warning: could not read duration of " + path);
-			return Double.NaN;
+			return -1;
 		}
 
 	}

@@ -18,7 +18,6 @@ public abstract class FilenameMovieIdentifier extends MovieIdentifier {
 	public FilenameMovieIdentifier(String sourcename, Function<String, Optional<ImdbId>> searchfn) {
 		this.sourcename = sourcename;
 		searchcache = new CachedHashMap<>(sourcename + "-search-cache");
-		searchcache.remove("Saw I DC 2004 ES HDC");
 		this.searchfn = searchfn;
 	}
 

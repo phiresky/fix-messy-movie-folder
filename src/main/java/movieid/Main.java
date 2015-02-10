@@ -52,6 +52,8 @@ public class Main {
 								foundMovies.remove(info);
 							}
 						});
+
+		// new MovieRuntimeValidator().validate(foundMovies);
 		System.out.println("Found: " + foundMovies.size() + "/" + allMovies.size() + " movies");
 		foundMovies.forEach(info -> createTargetLinks(info, outputdir));
 	}
@@ -69,7 +71,8 @@ public class Main {
 
 	}
 
-	static List<String> properties = Arrays.asList("Country", "Year", "imdbRating");
+	static List<String> properties = Arrays.asList("Country", "Year", "imdbRating", "Genre",
+			"Director");
 
 	private static void createTargetLinks(MovieInfo info, Path outputdir) {
 		Path normalizedFilename = Paths.get(Util.sanitizeFilename(info
@@ -79,10 +82,11 @@ public class Main {
 			Files.createDirectories(allDir);
 			makeSymlink(allDir.resolve(normalizedFilename), info.getPath());
 			for (String property : properties) {
-				Path dir = outputdir.resolve("by-" + property).resolve(
-						info.getInformation().getOrDefault(property, "Unknown"));
-				Files.createDirectories(dir);
-				makeSymlink(dir.resolve(normalizedFilename), info.getPath());
+				for (String val : info.getInformationValues(property)) {
+					Path dir = outputdir.resolve("by-" + property).resolve(val);
+					Files.createDirectories(dir);
+					makeSymlink(dir.resolve(normalizedFilename), info.getPath());
+				}
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
