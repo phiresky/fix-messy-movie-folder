@@ -22,9 +22,9 @@ public class Main {
 		Path outputdir = Paths.get(args[1]);
 		List<MovieInfo> allMovies = Util.walkMovies(inputdir)
 				.map(MovieIdentifier::tryAllIdentify).collect(toList());
-		// System.out.println("Not found:");
-		// movies.stream().filter(i -> !i.hasMetadata())
-		// .forEach(System.out::println);
+		System.out.println("Not found:");
+		allMovies.stream().filter(i -> !i.hasMetadata())
+				.forEach(System.out::println);
 		List<MovieInfo> foundMovies = allMovies.stream()
 				.filter(MovieInfo::hasMetadata).collect(toList());
 		foundMovies

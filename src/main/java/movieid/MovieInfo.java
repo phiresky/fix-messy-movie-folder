@@ -1,5 +1,7 @@
 package movieid;
 
+import identifiers.ImdbId;
+
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -7,13 +9,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class MovieInfo {
+	public static final String DEFAULT_FORMAT = "{Title} ({Year})";
 	public static final String DEFAULT_FILENAME = "{Title} ({Year}).{Extension}";
+
 	@Getter
 	@Setter
 	private Path path;
 	private boolean hasMetadata = false;
 	@Getter
-	private String imdbId;
+	private ImdbId imdbId;
 	@Getter
 	private Map<String, String> information;
 
@@ -21,7 +25,7 @@ public class MovieInfo {
 		return hasMetadata;
 	}
 
-	public static MovieInfo fromImdb(String imdbId) {
+	public static MovieInfo fromImdb(ImdbId imdbId) {
 		MovieInfo info = new MovieInfo();
 		info.hasMetadata = true;
 		info.imdbId = imdbId;
@@ -29,7 +33,7 @@ public class MovieInfo {
 		return info;
 	}
 
-	public static MovieInfo fromImdb(Path file, String imdbId) {
+	public static MovieInfo fromImdb(Path file, ImdbId imdbId) {
 		MovieInfo info = new MovieInfo();
 		info.path = file;
 		info.hasMetadata = true;
@@ -40,9 +44,9 @@ public class MovieInfo {
 
 	public String toString() {
 		if (!hasMetadata()) {
-			return "unknown: " + path;
+			return "unknown[" + path + "]";
 		}
-		return imdbId + ": " + path;
+		return format(DEFAULT_FORMAT) + "[" + path + "]";
 	}
 
 	public static MovieInfo empty(Path path) {
@@ -56,7 +60,8 @@ public class MovieInfo {
 			format = format.replace("{" + entry.getKey() + "}",
 					entry.getValue());
 		}
-		format = format.replace("{Extension}", Util.getFileExtension(path));
+		if (path != null)
+			format = format.replace("{Extension}", Util.getFileExtension(path));
 		return format;
 	}
 }

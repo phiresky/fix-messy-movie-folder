@@ -5,7 +5,6 @@ import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import movieid.ImdbUtil;
 import movieid.MovieInfo;
 import movieid.Util;
 
@@ -19,7 +18,7 @@ public class NfoMovieIdentifier extends MovieIdentifier {
 				return Util
 						.regexInFile(Util.IMDBURL, nfo)
 						.map(imdburl -> MovieInfo.fromImdb(path,
-								ImdbUtil.imdbIdFromImdbUrl(imdburl)))
+								ImdbId.fromUrl(imdburl)))
 						.orElseGet(() -> {
 							System.out.println("Invalid nfo: " + nfo);
 							return null;
