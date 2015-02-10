@@ -2,26 +2,15 @@ package movieid;
 
 import static java.util.stream.Collectors.toMap;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import jdk.nashorn.internal.parser.JSONParser;
-import lombok.Data;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -54,7 +43,6 @@ public class ImdbUtil {
 		search = search.trim();
 		System.out.println(search);
 		String imdbid = imdbsearchcache.get(search);
-		String imdbtitle = imdbsearchcache.get(search + "/title");
 		if (imdbid != null) {
 			if (imdbid.equals(NOTFOUND)) {
 				// System.out.println("IMDB: no results for " +
@@ -78,7 +66,6 @@ public class ImdbUtil {
 			}
 			imdbid = ele.attr("abs:href");
 			imdbid = imdbIdFromImdbUrl(imdbid);
-			imdbtitle = doc.select("table.findList a").get(1).text();
 			imdbsearchcache.put(search, imdbid);
 			return MovieInfo.fromImdb(file, imdbid);
 		} catch (UnsupportedEncodingException e) {

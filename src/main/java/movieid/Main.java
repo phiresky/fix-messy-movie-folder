@@ -5,11 +5,8 @@ import static java.util.stream.Collectors.toList;
 import identifiers.MovieIdentifier;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +54,6 @@ public class Main {
 			"imdbRating");
 
 	private static void createTargetLinks(MovieInfo info, Path outputdir) {
-		Path target = info.getPath().relativize(outputdir);
 		Path normalizedFilename = Paths.get(Util.sanitizeFilename(info
 				.format(MovieInfo.DEFAULT_FILENAME)));
 		try {

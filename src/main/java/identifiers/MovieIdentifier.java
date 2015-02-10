@@ -3,8 +3,6 @@ package identifiers;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 import movieid.MovieInfo;
 
