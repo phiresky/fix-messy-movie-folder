@@ -18,10 +18,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
 public class Main {
-	@Parameter(required = true, names = "-in", description = "The input directory containing the files")
-	private String inputdirname;
-	@Parameter(required = true, names = "-out", description = "The output directory where the generated links are put. Will be created if it does not exist")
-	private String outputdirname;
+	@Parameter(required = true, names = "-in", description = "The input directory containing the files") private String inputdirname;
+	@Parameter(required = true, names = "-out", description = "The output directory where the generated links are put. Will be created if it does not exist") private String outputdirname;
 
 	void run() {
 		Path inputdir = Paths.get(inputdirname);

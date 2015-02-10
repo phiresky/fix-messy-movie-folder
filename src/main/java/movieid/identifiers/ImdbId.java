@@ -14,8 +14,7 @@ import lombok.RequiredArgsConstructor;
 public class ImdbId implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	@Getter
-	private final String id;
+	@Getter private final String id;
 
 	private static Pattern IMDBID_PATTERN = Pattern.compile("(tt\\d+)");
 	private static Pattern IMDBURL_PATTERN = Pattern.compile("imdb\\.com/title/" + IMDBID_PATTERN);

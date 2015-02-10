@@ -21,8 +21,7 @@ public abstract class FilenameMovieIdentifier extends MovieIdentifier {
 		this.searchfn = searchfn;
 	}
 
-	@Override
-	public MovieInfo tryIdentifyMovie(Path input) {
+	@Override public MovieInfo tryIdentifyMovie(Path input) {
 		log = "";
 		MovieInfo info = Util.getIdentificationStrings(input).stream()
 				.peek(e -> log += "tried " + e).map(this::tryIdentifyMovie)
@@ -41,7 +40,7 @@ public abstract class FilenameMovieIdentifier extends MovieIdentifier {
 		if (imdbid == null)
 			return null;
 		MovieInfo x = MovieInfo.fromImdb(imdbid);
-		//System.out.println(sourcename + ": " + search + " -> " + x);
+		// System.out.println(sourcename + ": " + search + " -> " + x);
 		return x;
 	}
 }

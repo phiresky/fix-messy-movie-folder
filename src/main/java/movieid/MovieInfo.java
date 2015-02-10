@@ -20,16 +20,12 @@ public class MovieInfo {
 	public static final String DEFAULT_FORMAT = "{Title} ({Year})";
 	public static final String DEFAULT_FILENAME = "{Title} ({Year}).{Extension}";
 
-	@Getter
-	@Setter
-	private Path path;
+	@Getter @Setter private Path path;
 	private boolean hasMetadata = false;
-	@Getter
-	private ImdbId imdbId;
-	@Getter
-	private Map<String, String> information;
+	@Getter private ImdbId imdbId;
+	@Getter private Map<String, String> information;
 	private static Set<String> multivalueKeys = new HashSet<String>(Arrays.asList("Country",
-			"Genre","Director"));
+			"Genre", "Director"));
 
 	public boolean hasMetadata() {
 		return hasMetadata;

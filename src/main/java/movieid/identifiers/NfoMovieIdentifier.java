@@ -10,8 +10,7 @@ import movieid.util.Util;
 
 public class NfoMovieIdentifier extends MovieIdentifier {
 
-	@Override
-	public MovieInfo tryIdentifyMovie(Path path) {
+	@Override public MovieInfo tryIdentifyMovie(Path path) {
 		Path nfo = Paths.get(path.toString().replaceFirst("\\.[^.]+$", ".nfo"));
 		if (nfo.toFile().isFile()) {
 			try {
