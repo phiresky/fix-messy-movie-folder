@@ -13,21 +13,18 @@ import org.jsoup.nodes.Element;
 public class GoogleSearchMovieIdentifier extends FilenameMovieIdentifier {
 	public GoogleSearchMovieIdentifier() {
 		super("google", (search) -> {
-			String url = Util.addUrlParam("http://google.com/search?q=%s",
-					"site:imdb.com " + search);
+			String url = Util.addUrlParam("http://google.com/search?q=%s", "site:imdb.com "
+					+ search);
 
 			System.out.println("getting " + url);
 			try {
-				Response resp = Jsoup.connect(url)
-						.userAgent(Util.randomUserAgent())
-						/* .referrer(REFERRER) */.followRedirects(true)
-						.execute();
+				Response resp = Jsoup.connect(url).userAgent(Util.randomUserAgent())
+				/* .referrer(REFERRER) */.followRedirects(true).execute();
 				if (resp.statusCode() == 503 || resp.statusCode() == 502) {
 					throw new RuntimeException("Google wants captcha");
 				}
 				Document doc = resp.parse();
-				Element ele = doc.select("a[href*=//www.imdb.com/title/tt]")
-						.first();
+				Element ele = doc.select("a[href*=//www.imdb.com/title/tt]").first();
 				if (ele == null) {
 					return Optional.empty();
 				}

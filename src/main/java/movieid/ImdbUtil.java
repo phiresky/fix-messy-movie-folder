@@ -17,21 +17,17 @@ public class ImdbUtil {
 
 	public static Map<String, String> getMovieInfo(ImdbId imdbId) {
 		String id = imdbId.getId();
-		return imdbidcache.getCached(
-				id,
-				() -> {
-					try {
-						System.out.println("loading omdb " + id);
-						JSONObject data = new JSONObject(new JSONTokener(
-								new URL("http://www.omdbapi.com/?i=" + id)
-										.openStream()));
-						return data.keySet().stream()
-								.collect(toMap(key -> key, data::getString));
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					return null;
-				});
+		return imdbidcache.getCached(id, () -> {
+			try {
+				System.out.println("loading omdb " + id);
+				JSONObject data = new JSONObject(new JSONTokener(new URL(
+						"http://www.omdbapi.com/?i=" + id).openStream()));
+				return data.keySet().stream().collect(toMap(key -> key, data::getString));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return null;
+		});
 
 	}
 }

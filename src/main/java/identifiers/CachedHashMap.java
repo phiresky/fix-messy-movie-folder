@@ -20,11 +20,10 @@ public class CachedHashMap<K, V> implements Map<K, V> {
 	private final HashMap<K, V> map;
 
 	public CachedHashMap(String filename) {
-		map = CachedHashMap.<HashMap<K, V>> tryReadSerialized(filename)
-				.orElseGet(() -> {
-					System.out.println("creating new " + filename);
-					return new HashMap<K, V>();
-				});
+		map = CachedHashMap.<HashMap<K, V>> tryReadSerialized(filename).orElseGet(() -> {
+			System.out.println("creating new " + filename);
+			return new HashMap<K, V>();
+		});
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				writeSerialized(filename, map);
@@ -33,8 +32,7 @@ public class CachedHashMap<K, V> implements Map<K, V> {
 	}
 
 	private static <T> Optional<T> tryReadSerialized(String filename) {
-		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(
-				filename))) {
+		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
 			@SuppressWarnings("unchecked")
 			T c = (T) in.readObject();
 			return Optional.of(c);
@@ -49,8 +47,7 @@ public class CachedHashMap<K, V> implements Map<K, V> {
 	}
 
 	private static void writeSerialized(String filename, Object obj) {
-		try (ObjectOutputStream out = new ObjectOutputStream(
-				new FileOutputStream(filename))) {
+		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
 			out.writeObject(obj);
 			out.close();
 		} catch (IOException e) {
@@ -82,9 +79,9 @@ public class CachedHashMap<K, V> implements Map<K, V> {
 	public V get(Object key) {
 		return map.get(key);
 	}
-	
+
 	public V getCached(K key, Supplier<V> otherwise) {
-		if(!containsKey(key)) {
+		if (!containsKey(key)) {
 			put(key, otherwise.get());
 		}
 		return get(key);

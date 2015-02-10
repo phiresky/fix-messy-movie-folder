@@ -57,8 +57,7 @@ public class MovieInfo {
 
 	public String format(String format) {
 		for (Map.Entry<String, String> entry : information.entrySet()) {
-			format = format.replace("{" + entry.getKey() + "}",
-					entry.getValue());
+			format = format.replace("{" + entry.getKey() + "}", entry.getValue());
 		}
 		if (path != null)
 			format = format.replace("{Extension}", Util.getFileExtension(path));

@@ -13,9 +13,8 @@ public class ImdbTitleSearchMovieIdentifier extends FilenameMovieIdentifier {
 
 	public ImdbTitleSearchMovieIdentifier() {
 		super("imdb", (search) -> {
-			String url = Util.addUrlParam(
-					"http://www.imdb.com/find?s=tt&ttype=ft&q=%s", search);
-			
+			String url = Util.addUrlParam("http://www.imdb.com/find?s=tt&ttype=ft&q=%s", search);
+
 			System.out.println("getting " + url);
 			try {
 				Document doc = Jsoup.connect(url).get();

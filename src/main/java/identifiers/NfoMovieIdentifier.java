@@ -15,10 +15,8 @@ public class NfoMovieIdentifier extends MovieIdentifier {
 		Path nfo = Paths.get(path.toString().replaceFirst("\\.[^.]+$", ".nfo"));
 		if (nfo.toFile().isFile()) {
 			try {
-				return Util
-						.regexInFile(Util.IMDBURL, nfo)
-						.map(imdburl -> MovieInfo.fromImdb(path,
-								ImdbId.fromUrl(imdburl)))
+				return Util.regexInFile(Util.IMDBURL, nfo)
+						.map(imdburl -> MovieInfo.fromImdb(path, ImdbId.fromUrl(imdburl)))
 						.orElseGet(() -> {
 							System.out.println("Invalid nfo: " + nfo);
 							return null;

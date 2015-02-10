@@ -20,13 +20,12 @@ public class Main {
 		}
 		Path inputdir = Paths.get(args[0]);
 		Path outputdir = Paths.get(args[1]);
-		List<MovieInfo> allMovies = Util.walkMovies(inputdir)
-				.map(MovieIdentifier::tryAllIdentify).collect(toList());
+		List<MovieInfo> allMovies = Util.walkMovies(inputdir).map(MovieIdentifier::tryAllIdentify)
+				.collect(toList());
 		System.out.println("Not found:");
-		allMovies.stream().filter(i -> !i.hasMetadata())
-				.forEach(System.out::println);
-		List<MovieInfo> foundMovies = allMovies.stream()
-				.filter(MovieInfo::hasMetadata).collect(toList());
+		allMovies.stream().filter(i -> !i.hasMetadata()).forEach(System.out::println);
+		List<MovieInfo> foundMovies = allMovies.stream().filter(MovieInfo::hasMetadata)
+				.collect(toList());
 		foundMovies
 				.stream()
 				.collect(groupingBy(info -> info.getImdbId()))
@@ -36,22 +35,18 @@ public class Main {
 				.forEach(
 						list -> {
 							System.out.println(String.format(
-									"Warning: found %d duplicates for %s:",
-									list.size(),
-									list.get(0).format(
-											MovieInfo.DEFAULT_FILENAME)));
+									"Warning: found %d duplicates for %s:", list.size(), list
+											.get(0).format(MovieInfo.DEFAULT_FILENAME)));
 							for (MovieInfo info : list) {
 								System.out.println(info.getPath());
 								foundMovies.remove(info);
 							}
 						});
-		System.out.println("Found: " + foundMovies.size() + "/"
-				+ allMovies.size() + " movies");
+		System.out.println("Found: " + foundMovies.size() + "/" + allMovies.size() + " movies");
 		foundMovies.forEach(info -> createTargetLinks(info, outputdir));
 	}
 
-	static List<String> properties = Arrays.asList("Country", "Year",
-			"imdbRating");
+	static List<String> properties = Arrays.asList("Country", "Year", "imdbRating");
 
 	private static void createTargetLinks(MovieInfo info, Path outputdir) {
 		Path normalizedFilename = Paths.get(Util.sanitizeFilename(info
@@ -61,10 +56,8 @@ public class Main {
 			Files.createDirectories(allDir);
 			makeSymlink(allDir.resolve(normalizedFilename), info.getPath());
 			for (String property : properties) {
-				Path dir = outputdir.resolve("by-" + property)
-						.resolve(
-								info.getInformation().getOrDefault(property,
-										"Unknown"));
+				Path dir = outputdir.resolve("by-" + property).resolve(
+						info.getInformation().getOrDefault(property, "Unknown"));
 				Files.createDirectories(dir);
 				makeSymlink(dir.resolve(normalizedFilename), info.getPath());
 			}

@@ -29,11 +29,9 @@ public class Util {
 	public static final List<String> movieExtensions = Arrays
 			.asList(".mkv,.avi,.divx,.mpg,.mp4,.wmv".split(","));
 
-	public static Optional<String> regexInFile(Pattern regex, Path file)
-			throws IOException {
-		return Files.lines(file, Charset.forName("ISO-8859-1"))
-				.map(regex::matcher).filter(Matcher::find).map(Matcher::group)
-				.findFirst();
+	public static Optional<String> regexInFile(Pattern regex, Path file) throws IOException {
+		return Files.lines(file, Charset.forName("ISO-8859-1")).map(regex::matcher)
+				.filter(Matcher::find).map(Matcher::group).findFirst();
 	}
 
 	public static Stream<Path> walkMovies(Path root) {
@@ -42,8 +40,7 @@ public class Util {
 					.walk(root)
 					.filter(path -> path.toFile().isFile())
 					.filter(path -> movieExtensions.stream().anyMatch(
-							glob -> path.toString().toLowerCase()
-									.endsWith(glob)));
+							glob -> path.toString().toLowerCase().endsWith(glob)));
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
@@ -68,12 +65,10 @@ public class Util {
 	public static double getMovieDuration(Path path) {
 
 		try {
-			Process p = new ProcessBuilder("ffprobe", "-loglevel", "quiet",
-					"-show_format_entry", "duration", "-of", "json", path
-							.toAbsolutePath().toString()).start();
-			String duration = new JSONObject(
-					new JSONTokener(p.getInputStream()))
-					.getJSONObject("format").getString("duration");
+			Process p = new ProcessBuilder("ffprobe", "-loglevel", "quiet", "-show_format_entry",
+					"duration", "-of", "json", path.toAbsolutePath().toString()).start();
+			String duration = new JSONObject(new JSONTokener(p.getInputStream())).getJSONObject(
+					"format").getString("duration");
 			return Double.parseDouble(duration);
 		} catch (IOException e) {
 			System.out.println("Warning: could not read duration of " + path);
@@ -90,15 +85,13 @@ public class Util {
 					"\\b(DL|DTS|unrated|recut|6.1|dvdrip|xvid|dubbed|sow|owk|hdrip|bluray|PS|AC3D|dvdrip|ac3hd|wodkae|bublik|german|viahd|ld|noelite|blubyte|der film)\\b",
 					Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
 							| Pattern.UNICODE_CHARACTER_CLASS);
-	private static Pattern IGNORE = Pattern.compile(
-			"\\b(iNTERNAL|CIS|FuN|par2|DEFUSED)\\b",
+	private static Pattern IGNORE = Pattern.compile("\\b(iNTERNAL|CIS|FuN|par2|DEFUSED)\\b",
 
+	Pattern.UNICODE_CHARACTER_CLASS);
+	private static Pattern NONALPHA = Pattern.compile("[^\\p{Alpha}\\p{Digit}]+",
 			Pattern.UNICODE_CHARACTER_CLASS);
-	private static Pattern NONALPHA = Pattern.compile(
-			"[^\\p{Alpha}\\p{Digit}]+", Pattern.UNICODE_CHARACTER_CLASS);
 
-	public static String filenameToMoviename(String filename,
-			boolean removeFileExt) {
+	public static String filenameToMoviename(String filename, boolean removeFileExt) {
 		if (removeFileExt)
 			filename = filename.substring(0, filename.lastIndexOf('.'));
 		filename = IGNORE.matcher(filename).replaceAll(" ");
@@ -111,8 +104,8 @@ public class Util {
 	public static List<String> getIdentificationStrings(Path input) {
 		List<String> paths = new ArrayList<>();
 		do {
-			paths.add(Util.filenameToMoviename(input.getFileName().toString(),
-					input.toFile().isFile()));
+			paths.add(Util.filenameToMoviename(input.getFileName().toString(), input.toFile()
+					.isFile()));
 			input = input.getParent();
 		} while (Util.walkMovies(input).count() == 1);
 		return paths;
@@ -133,8 +126,7 @@ public class Util {
 	public static String randomUserAgent() {
 		Path userAgentsFile;
 		try {
-			userAgentsFile = Paths.get(Util.class
-					.getResource("user-agents.txt").toURI());
+			userAgentsFile = Paths.get(Util.class.getResource("user-agents.txt").toURI());
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
@@ -145,8 +137,7 @@ public class Util {
 				throw new UncheckedIOException(e);
 			}
 		}
-		return userAgentsCache.get(ThreadLocalRandom.current().nextInt(
-				userAgentsCache.size()));
+		return userAgentsCache.get(ThreadLocalRandom.current().nextInt(userAgentsCache.size()));
 
 	}
 }
