@@ -3,6 +3,7 @@ package movieid;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -23,7 +24,6 @@ import org.json.JSONTokener;
 public class Util {
 	public static Pattern IMDBURL = Pattern.compile("imdb\\.com/title/tt\\S+");
 	public static Pattern FILENAME = Pattern.compile("[/\\:*?\"<>|]+");
-	public static Path userAgentsFile = Paths.get("user-agents.txt");
 	private static List<String> userAgentsCache;
 	// ,__,jpg,nfo,srt,sfv,idx,rar,txt,mds,sup,vob,bup,ifo,sub
 	public static final List<String> movieExtensions = Arrays
@@ -131,6 +131,13 @@ public class Util {
 	}
 
 	public static String randomUserAgent() {
+		Path userAgentsFile;
+		try {
+			userAgentsFile = Paths.get(Util.class
+					.getResource("user-agents.txt").toURI());
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
 		if (userAgentsCache == null) {
 			if (Files.exists(userAgentsFile)) {
 				try {

@@ -3,4 +3,5 @@
 /.settings
 /bin
 /.gradle
-
+/*-cache
+/build

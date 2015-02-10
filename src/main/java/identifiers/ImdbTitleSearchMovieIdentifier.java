@@ -1,6 +1,7 @@
 package identifiers;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import movieid.Util;
 
@@ -20,9 +21,9 @@ public class ImdbTitleSearchMovieIdentifier extends FilenameMovieIdentifier {
 				Document doc = Jsoup.connect(url).get();
 				Element ele = doc.select("table.findList a").first();
 				if (ele == null) {
-					return null;
+					return Optional.empty();
 				}
-				return ImdbId.fromUrl(ele.attr("abs:href"));
+				return Optional.of(ImdbId.fromUrl(ele.attr("abs:href")));
 			} catch (IOException e) {
 				System.out.println("Could not get url " + url);
 				e.printStackTrace();
