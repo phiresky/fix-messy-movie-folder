@@ -11,15 +11,19 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
-public class Main {
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 
-	public static void main(String[] args) throws IOException {
-		if (args.length < 2) {
-			System.out.println("invalid usage");
-			System.exit(1);
-		}
-		Path inputdir = Paths.get(args[0]);
-		Path outputdir = Paths.get(args[1]);
+public class Main {
+	@Parameter(required = true, names = "-in", description = "The input directory containing the files")
+	private String inputdirname;
+	@Parameter(required = true, names = "-out", description = "The output directory where the generated links are put. Will be created if it does not exist")
+	private String outputdirname;
+
+	void run() {
+		Path inputdir = Paths.get(inputdirname);
+		Path outputdir = Paths.get(outputdirname);
 		List<MovieInfo> allMovies = Util.walkMovies(inputdir).map(MovieIdentifier::tryAllIdentify)
 				.collect(toList());
 		System.out.println("Not found:");
@@ -44,6 +48,19 @@ public class Main {
 						});
 		System.out.println("Found: " + foundMovies.size() + "/" + allMovies.size() + " movies");
 		foundMovies.forEach(info -> createTargetLinks(info, outputdir));
+	}
+
+	public static void main(String[] args) throws IOException {
+		Main main = new Main();
+		JCommander c = new JCommander(main);
+		try {
+			c.parse(args);
+			main.run();
+		} catch (ParameterException e) {
+			e.printStackTrace();
+			c.usage();
+		}
+
 	}
 
 	static List<String> properties = Arrays.asList("Country", "Year", "imdbRating");

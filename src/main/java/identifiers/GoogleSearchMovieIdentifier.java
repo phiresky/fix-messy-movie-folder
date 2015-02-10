@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import movieid.Util;
 
-import org.jsoup.Connection.Response;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -18,12 +18,16 @@ public class GoogleSearchMovieIdentifier extends FilenameMovieIdentifier {
 
 			System.out.println("getting " + url);
 			try {
-				Response resp = Jsoup.connect(url).userAgent(Util.randomUserAgent())
-				/* .referrer(REFERRER) */.followRedirects(true).execute();
-				if (resp.statusCode() == 503 || resp.statusCode() == 502) {
-					throw new RuntimeException("Google wants captcha");
+				Document doc;
+				try {
+					doc = Jsoup.connect(url).userAgent(Util.randomUserAgent())
+					/* .referrer(REFERRER) */.followRedirects(true).get();
+				} catch (HttpStatusException e) {
+					if (e.getStatusCode() == 503 || e.getStatusCode() == 502) {
+						throw new RuntimeException("Google wants captcha");
+					} else
+						throw e;
 				}
-				Document doc = resp.parse();
 				Element ele = doc.select("a[href*=//www.imdb.com/title/tt]").first();
 				if (ele == null) {
 					return Optional.empty();
