@@ -53,7 +53,10 @@ public class Util {
 	}
 
 	public static String sanitizeFilename(String name) {
-		return FILENAME.matcher(name).replaceAll("-");
+		String o = FILENAME.matcher(name).replaceAll("-");
+		if (o.endsWith("."))
+			return o.substring(0, o.length() - 1);
+		return o;
 	}
 
 	/**

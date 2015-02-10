@@ -29,7 +29,7 @@ public class MovieInfo {
 	@Getter
 	private Map<String, String> information;
 	private static Set<String> multivalueKeys = new HashSet<String>(Arrays.asList("Country",
-			"Genre"));
+			"Genre","Director"));
 
 	public boolean hasMetadata() {
 		return hasMetadata;

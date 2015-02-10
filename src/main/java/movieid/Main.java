@@ -53,7 +53,7 @@ public class Main {
 							}
 						});
 
-		// new MovieRuntimeValidator().validate(foundMovies);
+		new MovieRuntimeValidator().validate(foundMovies);
 		System.out.println("Found: " + foundMovies.size() + "/" + allMovies.size() + " movies");
 		foundMovies.forEach(info -> createTargetLinks(info, outputdir));
 	}
@@ -83,7 +83,9 @@ public class Main {
 			makeSymlink(allDir.resolve(normalizedFilename), info.getPath());
 			for (String property : properties) {
 				for (String val : info.getInformationValues(property)) {
-					Path dir = outputdir.resolve("by-" + property).resolve(val);
+					Path dir = outputdir.resolve("by-" + Util.sanitizeFilename(property)).resolve(
+							Util.sanitizeFilename(val));
+					System.out.println(dir);
 					Files.createDirectories(dir);
 					makeSymlink(dir.resolve(normalizedFilename), info.getPath());
 				}
