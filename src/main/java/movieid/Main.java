@@ -38,9 +38,13 @@ public class Main {
 				.filter(list -> list.size() > 1)
 				.forEach(
 						list -> {
+							System.out.println(String.format(
+									"Warning: found %d duplicates for %s:",
+									list.size(),
+									list.get(0).format(
+											MovieInfo.DEFAULT_FILENAME)));
 							for (MovieInfo info : list) {
-								System.out.println("Warning: " + info.getPath()
-										+ " is duplicate");
+								System.out.println(info.getPath());
 								foundMovies.remove(info);
 							}
 						});
@@ -55,7 +59,7 @@ public class Main {
 	private static void createTargetLinks(MovieInfo info, Path outputdir) {
 		Path target = info.getPath().relativize(outputdir);
 		Path normalizedFilename = Paths.get(Util.sanitizeFilename(info
-				.format("{Title} ({Year}).{Extension}")));
+				.format(MovieInfo.DEFAULT_FILENAME)));
 		try {
 			Path allDir = outputdir.resolve("all");
 			Files.createDirectories(allDir);

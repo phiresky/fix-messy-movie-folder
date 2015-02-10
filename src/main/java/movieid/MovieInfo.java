@@ -10,6 +10,7 @@ import lombok.Setter;
 
 @RequiredArgsConstructor
 public class MovieInfo {
+	public static final String DEFAULT_FILENAME = "{Title} ({Year}).{Extension}";
 	@Getter @Setter @NonNull
 	private Path path;
 	private final boolean hasMetadata;

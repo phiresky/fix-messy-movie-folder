@@ -1,6 +1,5 @@
 package movieid;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -13,13 +12,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 public class Util {
 	public static Pattern IMDBURL = Pattern.compile("imdb\\.com/title/tt\\S+");
@@ -65,7 +65,7 @@ public class Util {
 			T c = (T) in.readObject();
 			return Optional.of(c);
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			// ignore
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
@@ -88,8 +88,32 @@ public class Util {
 		String fname = path.getFileName().toString();
 		return fname.substring(fname.lastIndexOf('.') + 1);
 	}
-	
+
 	public static String sanitizeFilename(String name) {
 		return FILENAME.matcher(name).replaceAll("-");
+	}
+
+	/**
+	 * uses ffprobe to get movie duration
+	 * 
+	 * @param path
+	 *            movie filename
+	 * @return duration in seconds, NaN if could not read
+	 */
+	public static double getDuration(Path path) {
+
+		try {
+			Process p = new ProcessBuilder("ffprobe", "-loglevel", "quiet",
+					"-show_format_entry", "duration", "-of", "json", path
+							.toAbsolutePath().toString()).start();
+			String duration = new JSONObject(
+					new JSONTokener(p.getInputStream()))
+					.getJSONObject("format").getString("duration");
+			return Double.parseDouble(duration);
+		} catch (IOException e) {
+			System.out.println("Warning: could not read duration of " + path);
+			return Double.NaN;
+		}
+
 	}
 }

@@ -1,8 +1,10 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'application'
 
 sourceCompatibility = 1.8
 version = '1.0'
+mainClassName = 'movieid.Main'
 jar {
     manifest {
         attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
