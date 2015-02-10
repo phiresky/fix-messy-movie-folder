@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 public class Util {
 	public static Pattern IMDBURL = Pattern.compile("imdb\\.com/title/tt\\S+");
+	public static Pattern FILENAME = Pattern.compile("[/\\:*?\"<>|]+");
 	// ,__,jpg,nfo,srt,sfv,idx,rar,txt,mds,sup,vob,bup,ifo,sub
 	public static final List<String> movieExtensions = Arrays
 			.asList(".mkv,.avi,.divx,.mpg,.mp4,.wmv".split(","));
@@ -59,12 +60,12 @@ public class Util {
 
 	public static <T> Optional<T> tryReadSerialized(String filename) {
 		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(
-				"imdbcache"))) {
-			;
+				filename))) {
 			@SuppressWarnings("unchecked")
 			T c = (T) in.readObject();
 			return Optional.of(c);
 		} catch (FileNotFoundException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
@@ -81,5 +82,14 @@ public class Util {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static String getFileExtension(Path path) {
+		String fname = path.getFileName().toString();
+		return fname.substring(fname.lastIndexOf('.') + 1);
+	}
+	
+	public static String sanitizeFilename(String name) {
+		return FILENAME.matcher(name).replaceAll("-");
 	}
 }

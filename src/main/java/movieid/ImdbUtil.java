@@ -1,5 +1,7 @@
 package movieid;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -7,6 +9,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -16,8 +20,11 @@ import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import jdk.nashorn.internal.parser.JSONParser;
 import lombok.Data;
 
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,27 +36,32 @@ public class ImdbUtil {
 	private static Map<String, String> imdbsearchcache;
 	private static Map<String, Map<String, String>> imdbidcache;
 	static {
-		imdbsearchcache = Util.<Map<String,String>>serialized("imdb-search-cache", () -> {
-			System.out.println("Creating new search cache");
-			return new HashMap<>();
-		});
-		imdbidcache = Util.<Map<String,Map<String,String>>>serialized("imdb-id-cache", () -> {
-			System.out.println("Creating new id cache");
-			return new HashMap<>();
-		});
-		
+		imdbsearchcache = Util.<Map<String, String>> serialized(
+				"imdb-search-cache", () -> {
+					System.out.println("Creating new search cache");
+					return new HashMap<>();
+				});
+		imdbidcache = Util.<Map<String, Map<String, String>>> serialized(
+				"imdb-id-cache", () -> {
+					System.out.println("Creating new id cache");
+					return new HashMap<>();
+				});
+		imdbsearchcache.remove("owk bolt");
+
 	}
 
 	public static MovieInfo getMovieInfoFromSearch(Path file, String search) {
 		search = search.trim();
+		System.out.println(search);
 		String imdbid = imdbsearchcache.get(search);
 		String imdbtitle = imdbsearchcache.get(search + "/title");
 		if (imdbid != null) {
 			if (imdbid.equals(NOTFOUND)) {
-				//System.out.println("IMDB: no results for " + search+" ("+file.getFileName()+")");
+				// System.out.println("IMDB: no results for " +
+				// search+" ("+file.getFileName()+")");
 				return null;
 			}
-			return MovieInfo.fromImdb(file, imdbid, imdbtitle);
+			return MovieInfo.fromImdb(file, imdbid);
 		}
 		String url = null;
 		try {
@@ -59,7 +71,8 @@ public class ImdbUtil {
 			Document doc = Jsoup.connect(url).get();
 			Element ele = doc.select("table.findList a").first();
 			if (ele == null) {
-				//System.out.println("IMDB: no results for " + search+" ("+file.getFileName()+")");
+				// System.out.println("IMDB: no results for " +
+				// search+" ("+file.getFileName()+")");
 				imdbsearchcache.put(search, "[[NOTFOUND]]");
 				return null;
 			}
@@ -67,8 +80,7 @@ public class ImdbUtil {
 			imdbid = imdbIdFromImdbUrl(imdbid);
 			imdbtitle = doc.select("table.findList a").get(1).text();
 			imdbsearchcache.put(search, imdbid);
-			imdbsearchcache.put(search + "/title", imdbtitle);
-			return MovieInfo.fromImdb(file, imdbid, imdbtitle);
+			return MovieInfo.fromImdb(file, imdbid);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -87,5 +99,23 @@ public class ImdbUtil {
 	public static void main(String[] args) {
 		System.out
 				.println(imdbIdFromImdbUrl("http://www.imdb.com/title/tt0125766/?ref_=fn_tt_tt_1"));
+	}
+
+	public static Map<String, String> getMovieInfo(String imdbId) {
+		Map<String, String> information = imdbidcache.get(imdbId);
+		if (information == null) {
+			try {
+				System.out.println("loading omdb "+imdbId);
+				JSONObject data = new JSONObject(new JSONTokener(new URL(
+						"http://www.omdbapi.com/?i=" + imdbId).openStream()));
+				information = data.keySet().stream()
+						.collect(toMap(key -> key, data::getString));
+				imdbidcache.put(imdbId, information);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return information;
+
 	}
 }
