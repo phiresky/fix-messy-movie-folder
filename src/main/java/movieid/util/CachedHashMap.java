@@ -26,6 +26,7 @@ public class CachedHashMap<K, V> implements Map<K, V> {
 		});
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
+				System.out.println("Writing "+filename);
 				writeSerialized(filename, map);
 			}
 		});

@@ -28,8 +28,12 @@ public class Main {
 		Path outputdir = Paths.get(outputdirname);
 		List<MovieInfo> allMovies = Util.walkMovies(inputdir).map(MovieIdentifier::tryAllIdentify)
 				.collect(toList());
-		System.out.println("Not found:");
-		allMovies.stream().filter(i -> !i.hasMetadata()).forEach(System.out::println);
+		List<MovieInfo> unfoundMovies = allMovies.stream().filter(i -> !i.hasMetadata())
+				.collect(toList());
+		if (unfoundMovies.size() > 0) {
+			System.out.println("Not found:");
+			unfoundMovies.forEach(System.out::println);
+		}
 		List<MovieInfo> foundMovies = allMovies.stream().filter(MovieInfo::hasMetadata)
 				.collect(toList());
 		foundMovies

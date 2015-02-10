@@ -42,7 +42,7 @@ public abstract class FilenameMovieIdentifier extends MovieIdentifier {
 		if (imdbid == null)
 			return null;
 		MovieInfo x = MovieInfo.fromImdb(imdbid);
-		System.out.println(sourcename + ": " + search + " -> " + x);
+		//System.out.println(sourcename + ": " + search + " -> " + x);
 		return x;
 	}
 }
