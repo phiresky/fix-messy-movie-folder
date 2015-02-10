@@ -139,15 +139,10 @@ public class Util {
 			throw new RuntimeException(e);
 		}
 		if (userAgentsCache == null) {
-			if (Files.exists(userAgentsFile)) {
-				try {
-					userAgentsCache = Files.readAllLines(userAgentsFile);
-				} catch (IOException e) {
-					throw new UncheckedIOException(e);
-				}
-			} else {
-				userAgentsCache = Arrays
-						.asList("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/600.2.5 (KHTML, like Gecko) Version/8.0.2 Safari/600.2.5");
+			try {
+				userAgentsCache = Files.readAllLines(userAgentsFile);
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
 			}
 		}
 		return userAgentsCache.get(ThreadLocalRandom.current().nextInt(
