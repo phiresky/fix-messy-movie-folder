@@ -1,9 +1,10 @@
-package movieid;
+package movieid.util;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -126,7 +127,10 @@ public class Util {
 	public static String randomUserAgent() {
 		Path userAgentsFile;
 		try {
-			userAgentsFile = Paths.get(Util.class.getResource("user-agents.txt").toURI());
+			URL res = Util.class.getResource("user-agents.txt");
+			if (res == null)
+				throw new RuntimeException("user-agents.txt missing");
+			userAgentsFile = Paths.get(res.toURI());
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}

@@ -1,9 +1,9 @@
-package identifiers;
+package movieid.identifiers;
 
 import java.io.IOException;
 import java.util.Optional;
 
-import movieid.Util;
+import movieid.util.Util;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

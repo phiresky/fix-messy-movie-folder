@@ -1,4 +1,4 @@
-package identifiers;
+package movieid.identifiers;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import movieid.MovieInfo;
-import movieid.Util;
+import movieid.util.Util;
 
 public class NfoMovieIdentifier extends MovieIdentifier {
 

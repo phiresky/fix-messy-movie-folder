@@ -1,4 +1,4 @@
-package identifiers;
+package movieid.identifiers;
 
 import java.nio.file.Path;
 import java.util.Objects;
@@ -6,7 +6,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import movieid.MovieInfo;
-import movieid.Util;
+import movieid.util.CachedHashMap;
+import movieid.util.Util;
 
 public abstract class FilenameMovieIdentifier extends MovieIdentifier {
 	private final CachedHashMap<String, ImdbId> searchcache;

@@ -2,7 +2,6 @@ package movieid;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import identifiers.MovieIdentifier;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,6 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+
+import movieid.identifiers.MovieIdentifier;
+import movieid.util.Util;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;

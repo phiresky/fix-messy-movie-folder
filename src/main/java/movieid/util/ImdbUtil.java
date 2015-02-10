@@ -1,12 +1,12 @@
-package movieid;
+package movieid.util;
 
 import static java.util.stream.Collectors.toMap;
-import identifiers.CachedHashMap;
-import identifiers.ImdbId;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
+
+import movieid.identifiers.ImdbId;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;

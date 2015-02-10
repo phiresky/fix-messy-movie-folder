@@ -1,4 +1,4 @@
-package identifiers;
+package movieid.identifiers;
 
 import java.io.Serializable;
 import java.util.regex.Matcher;

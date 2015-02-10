@@ -1,4 +1,4 @@
-package identifiers;
+package movieid.util;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

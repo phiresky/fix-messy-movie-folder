@@ -1,12 +1,13 @@
 package movieid;
 
-import identifiers.ImdbId;
-
 import java.nio.file.Path;
 import java.util.Map;
 
 import lombok.Getter;
 import lombok.Setter;
+import movieid.identifiers.ImdbId;
+import movieid.util.ImdbUtil;
+import movieid.util.Util;
 
 public class MovieInfo {
 	public static final String DEFAULT_FORMAT = "{Title} ({Year})";

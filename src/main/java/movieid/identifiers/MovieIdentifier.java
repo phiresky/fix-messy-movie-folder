@@ -1,4 +1,4 @@
-package identifiers;
+package movieid.identifiers;
 
 import java.nio.file.Path;
 import java.util.Arrays;
