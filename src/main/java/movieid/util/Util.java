@@ -1,17 +1,17 @@
 package movieid.util;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
@@ -86,16 +86,26 @@ public class Util {
 					| Pattern.UNICODE_CASE | Pattern.UNICODE_CHARACTER_CLASS);
 	private static Pattern IGNORE_NOCASE = Pattern
 			.compile(
-					"\\b(DL|DTS|unrated|recut|6.1|dvdrip|xvid|dubbed|sow|owk|hdrip|bluray|PS|AC3D|dvdrip|ac3hd|wodkae|bublik|german|viahd|ld|noelite|blubyte|der film)\\b",
+					"\\b(DL|DTS|unrated|recut|6.1|dvdrip|yiffy|2brothers|xvid|dubbed|sow|owk|hdrip|bluray|PS|AC3D|dvdrip|ac3hd|wodkae|bublik|german|viahd|ld|noelite|blubyte)\\b",
 					Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
 							| Pattern.UNICODE_CHARACTER_CLASS);
-	private static Pattern IGNORE = Pattern.compile("\\b(iNTERNAL|CIS|FuN|par2|DEFUSED)\\b",
+	private static Pattern IGNORE = Pattern.compile("\\b(iNTERNAL|CIS|FuN|par2|DEFUSED|LameHD)\\b",
 
 	Pattern.UNICODE_CHARACTER_CLASS);
+	/**
+	 * matches name structure like
+	 * Der.Hobbit.Eine.Unerwartete.Reise.2012.GERMAN.
+	 * DTS.1080p.BluRay.x264-WodkaE, ignore part after that
+	 */
+	private static Pattern YEAR_PATTERN = Pattern.compile("\\.\\d\\d\\d\\d\\.");
 	private static Pattern NONALPHA = Pattern.compile("[^\\p{Alpha}\\p{Digit}]+",
 			Pattern.UNICODE_CHARACTER_CLASS);
 
 	public static String filenameToMoviename(String filename, boolean removeFileExt) {
+		Matcher m = YEAR_PATTERN.matcher(filename);
+		if (m.find()) {
+			filename = filename.substring(0, m.end());
+		}
 		if (removeFileExt)
 			filename = filename.substring(0, filename.lastIndexOf('.'));
 		filename = IGNORE.matcher(filename).replaceAll(" ");
@@ -106,12 +116,13 @@ public class Util {
 	}
 
 	public static List<String> getIdentificationStrings(Path input) {
-		List<String> paths = new ArrayList<>();
+		LinkedList<String> paths = new LinkedList<>();
 		do {
-			paths.add(Util.filenameToMoviename(input.getFileName().toString(), input.toFile()
+			paths.addFirst(Util.filenameToMoviename(input.getFileName().toString(), input.toFile()
 					.isFile()));
 			input = input.getParent();
 		} while (Util.walkMovies(input).count() == 1);
+
 		return paths;
 	}
 
@@ -128,20 +139,13 @@ public class Util {
 	}
 
 	public static String randomUserAgent() {
-		Path userAgentsFile;
-		try {
-			URL res = Util.class.getResource("user-agents.txt");
-			if (res == null)
-				throw new RuntimeException("user-agents.txt missing");
-			userAgentsFile = Paths.get(res.toURI());
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
 		if (userAgentsCache == null) {
-			try {
-				userAgentsCache = Files.readAllLines(userAgentsFile);
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
+			userAgentsCache = new ArrayList<>();
+			try(BufferedReader res = new BufferedReader(new InputStreamReader(Util.class.getResourceAsStream("user-agents.txt")))) {
+				String line;
+				while((line = res.readLine()) != null) userAgentsCache.add(line);
+			} catch (IOException e1) {
+				throw new UncheckedIOException(e1);
 			}
 		}
 		return userAgentsCache.get(ThreadLocalRandom.current().nextInt(userAgentsCache.size()));

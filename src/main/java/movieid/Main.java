@@ -22,8 +22,8 @@ public class Main {
 	@Parameter(required = true, names = "-out", description = "The output directory where the generated links are put. Will be created if it does not exist") private String outputdirname;
 
 	void run() {
-		Path inputdir = Paths.get(inputdirname);
-		Path outputdir = Paths.get(outputdirname);
+		Path inputdir = Paths.get(inputdirname).toAbsolutePath();
+		Path outputdir = Paths.get(outputdirname).toAbsolutePath();
 		List<MovieInfo> allMovies = Util.walkMovies(inputdir).map(MovieIdentifier::tryAllIdentify)
 				.collect(toList());
 		List<MovieInfo> unfoundMovies = allMovies.stream().filter(i -> !i.hasMetadata())
@@ -78,14 +78,14 @@ public class Main {
 		try {
 			Path allDir = outputdir.resolve("all");
 			Files.createDirectories(allDir);
-			makeSymlink(allDir.resolve(normalizedFilename), info.getPath());
+			makeSymlink(allDir.resolve(normalizedFilename), allDir.relativize(info.getPath()));
 			for (String property : properties) {
 				for (String val : info.getInformationValues(property)) {
 					Path dir = outputdir.resolve("by-" + Util.sanitizeFilename(property)).resolve(
 							Util.sanitizeFilename(val));
 					System.out.println(dir);
 					Files.createDirectories(dir);
-					makeSymlink(dir.resolve(normalizedFilename), info.getPath());
+					makeSymlink(dir.resolve(normalizedFilename), dir.relativize(info.getPath()));
 				}
 			}
 		} catch (IOException e) {
