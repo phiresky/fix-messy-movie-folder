@@ -10,6 +10,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -100,7 +101,7 @@ public class Util {
 	 *            movie filename
 	 * @return duration in seconds, NaN if could not read
 	 */
-	public static double getDuration(Path path) {
+	public static double getMovieDuration(Path path) {
 
 		try {
 			Process p = new ProcessBuilder("ffprobe", "-loglevel", "quiet",
@@ -115,5 +116,40 @@ public class Util {
 			return Double.NaN;
 		}
 
+	}
+
+	private static Pattern IGNORE_ANYWHERE = Pattern.compile(
+			"1080p|720p|x264|\\bAC3", Pattern.CASE_INSENSITIVE
+					| Pattern.UNICODE_CASE | Pattern.UNICODE_CHARACTER_CLASS);
+	private static Pattern IGNORE_NOCASE = Pattern
+			.compile(
+					"\\b(DL|DTS|unrated|recut|dvdrip|xvid|dubbed|sow|owk|hdrip|bluray|PS|AC3D|dvdrip|ac3hd|wodkae|bublik|german|viahd|ld|noelite|blubyte|der film)\\b",
+					Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
+							| Pattern.UNICODE_CHARACTER_CLASS);
+	private static Pattern IGNORE = Pattern.compile(
+			"\\b(iNTERNAL|CIS|FuN|par2|DEFUSED)\\b",
+
+			Pattern.UNICODE_CHARACTER_CLASS);
+	private static Pattern NONALPHA = Pattern.compile(
+			"[^\\p{Alpha}\\p{Digit}]+", Pattern.UNICODE_CHARACTER_CLASS);
+
+	public static String filenameToMoviename(String filename, boolean removeFileExt) {
+		if (removeFileExt)
+			filename = filename.substring(0, filename.lastIndexOf('.'));
+		filename = IGNORE.matcher(filename).replaceAll(" ");
+		filename = IGNORE_ANYWHERE.matcher(filename).replaceAll(" ");
+		filename = IGNORE_NOCASE.matcher(filename).replaceAll(" ");
+		filename = NONALPHA.matcher(filename).replaceAll(" ");
+		return filename;
+	}
+
+	public static List<String> getIdentificationStrings(Path input) {
+		List<String> paths = new ArrayList<>();
+		do {
+			paths.add(Util.filenameToMoviename(input.getFileName().toString(),
+					input.toFile().isFile()));
+			input = input.getParent();
+		} while (Util.walkMovies(input).count() == 1);
+		return paths;
 	}
 }

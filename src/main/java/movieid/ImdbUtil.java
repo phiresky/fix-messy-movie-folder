@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -39,7 +38,7 @@ public class ImdbUtil {
 
 	}
 
-	public static MovieInfo getMovieInfoFromSearch(Path file, String search) {
+	public static MovieInfo getMovieInfoFromSearch(String search) {
 		search = search.trim();
 		System.out.println(search);
 		String imdbid = imdbsearchcache.get(search);
@@ -49,7 +48,7 @@ public class ImdbUtil {
 				// search+" ("+file.getFileName()+")");
 				return null;
 			}
-			return MovieInfo.fromImdb(file, imdbid);
+			return MovieInfo.fromImdb(imdbid);
 		}
 		String url = null;
 		try {
@@ -67,7 +66,7 @@ public class ImdbUtil {
 			imdbid = ele.attr("abs:href");
 			imdbid = imdbIdFromImdbUrl(imdbid);
 			imdbsearchcache.put(search, imdbid);
-			return MovieInfo.fromImdb(file, imdbid);
+			return MovieInfo.fromImdb(imdbid);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

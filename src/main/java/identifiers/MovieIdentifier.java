@@ -7,7 +7,7 @@ import java.util.List;
 import movieid.MovieInfo;
 
 public abstract class MovieIdentifier {
-	public static List<MovieIdentifier> IDENTIFIERS = Arrays.asList(new NfoMovieIdentifier(), new ImdbTitleSearchMovieIdentifier());
+	public static List<MovieIdentifier> IDENTIFIERS = Arrays.asList(new NfoMovieIdentifier(), new GoogleSearchMovieIdentifier(), new ImdbTitleSearchMovieIdentifier());
 
 	public abstract MovieInfo tryIdentifyMovie(Path input);
 

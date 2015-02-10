@@ -4,16 +4,14 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-@RequiredArgsConstructor
 public class MovieInfo {
 	public static final String DEFAULT_FILENAME = "{Title} ({Year}).{Extension}";
-	@Getter @Setter @NonNull
+	@Getter
+	@Setter
 	private Path path;
-	private final boolean hasMetadata;
+	private boolean hasMetadata = false;
 	@Getter
 	private String imdbId;
 	@Getter
@@ -23,8 +21,18 @@ public class MovieInfo {
 		return hasMetadata;
 	}
 
-	public static MovieInfo fromImdb(Path path, String imdbId) {
-		MovieInfo info = new MovieInfo(path, true);
+	public static MovieInfo fromImdb(String imdbId) {
+		MovieInfo info = new MovieInfo();
+		info.hasMetadata = true;
+		info.imdbId = imdbId;
+		info.information = ImdbUtil.getMovieInfo(imdbId);
+		return info;
+	}
+
+	public static MovieInfo fromImdb(Path file, String imdbId) {
+		MovieInfo info = new MovieInfo();
+		info.path = file;
+		info.hasMetadata = true;
 		info.imdbId = imdbId;
 		info.information = ImdbUtil.getMovieInfo(imdbId);
 		return info;
@@ -38,12 +46,15 @@ public class MovieInfo {
 	}
 
 	public static MovieInfo empty(Path path) {
-		return new MovieInfo(path, false);
+		MovieInfo m = new MovieInfo();
+		m.setPath(path);
+		return m;
 	}
 
 	public String format(String format) {
-		for(Map.Entry<String, String> entry: information.entrySet()) {
-			format = format.replace("{"+entry.getKey()+"}", entry.getValue());
+		for (Map.Entry<String, String> entry : information.entrySet()) {
+			format = format.replace("{" + entry.getKey() + "}",
+					entry.getValue());
 		}
 		format = format.replace("{Extension}", Util.getFileExtension(path));
 		return format;
