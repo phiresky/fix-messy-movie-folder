@@ -43,8 +43,8 @@ public class Main {
 				.forEach(
 						list -> {
 							System.out.println(String.format(
-									"Warning: found %d duplicates for %s:", list.size(), list
-											.get(0).format(MovieInfo.DEFAULT_FILENAME)));
+									"Warning: found %d duplicates for %s, ignoring all:",
+									list.size(), list.get(0).format(MovieInfo.DEFAULT_FILENAME)));
 							for (MovieInfo info : list) {
 								System.out.println(info.getPath());
 								foundMovies.remove(info);
@@ -78,14 +78,15 @@ public class Main {
 		try {
 			Path allDir = outputdir.resolve("all");
 			Files.createDirectories(allDir);
-			makeSymlink(allDir.resolve(normalizedFilename), allDir.relativize(info.getPath()));
+			makeSymlink(allDir.resolve(normalizedFilename), allDir.relativize(info.getPath()),
+					false);
 			for (String property : properties) {
 				for (String val : info.getInformationValues(property)) {
 					Path dir = outputdir.resolve("by-" + Util.sanitizeFilename(property)).resolve(
 							Util.sanitizeFilename(val));
-					System.out.println(dir);
 					Files.createDirectories(dir);
-					makeSymlink(dir.resolve(normalizedFilename), dir.relativize(info.getPath()));
+					makeSymlink(dir.resolve(normalizedFilename), dir.relativize(info.getPath()),
+							false);
 				}
 			}
 		} catch (IOException e) {
@@ -94,13 +95,15 @@ public class Main {
 		}
 	}
 
-	private static void makeSymlink(Path from, Path to) throws IOException {
+	private static void makeSymlink(Path from, Path to, boolean printIfNew) throws IOException {
 		if (Files.isSymbolicLink(from)) {
 			if (!Files.readSymbolicLink(from).equals(to)) {
 				throw new IOException(from + " already exists and points to "
 						+ Files.readSymbolicLink(from) + " instead of " + to);
 			}
 		} else {
+			if (printIfNew)
+				System.out.println("New link: " + from + "->" + to);
 			Files.createSymbolicLink(from, to);
 		}
 	}

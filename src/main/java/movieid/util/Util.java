@@ -82,14 +82,14 @@ public class Util {
 	}
 
 	private static Pattern IGNORE_ANYWHERE = Pattern.compile(
-			"1080p|720p|x264|\\bAC3|\\[..(,..)*\\]", Pattern.CASE_INSENSITIVE
+			"1080p|720p|xvid|\\bicq4711|x264|\\bAC3|\\[..(,..)*\\]", Pattern.CASE_INSENSITIVE
 					| Pattern.UNICODE_CASE | Pattern.UNICODE_CHARACTER_CLASS);
 	private static Pattern IGNORE_NOCASE = Pattern
 			.compile(
-					"\\b(DL|DTS|unrated|recut|6.1|dvdrip|yiffy|2brothers|xvid|dubbed|sow|owk|hdrip|bluray|PS|AC3D|dvdrip|ac3hd|wodkae|bublik|german|viahd|ld|noelite|blubyte)\\b",
+					"\\b(DL|DTS|unrated|recut|repack|6.1|dvdrip|brrip|hdw|cis|5\\.1|yiffy|2brothers|xvid|dubbed|sow|owk|hdrip|bluray|PS|AC3D|dvdrip|ac3hd|wodkae|bublik|german|viahd|ld|noelite|blubyte)\\b",
 					Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
 							| Pattern.UNICODE_CHARACTER_CLASS);
-	private static Pattern IGNORE = Pattern.compile("\\b(iNTERNAL|CIS|FuN|par2|DEFUSED|LameHD)\\b",
+	private static Pattern IGNORE = Pattern.compile("\\b(iNTERNAL|VCF|FuN|par2|TS|DEFUSED|LameHD|PR)\\b",
 
 	Pattern.UNICODE_CHARACTER_CLASS);
 	/**

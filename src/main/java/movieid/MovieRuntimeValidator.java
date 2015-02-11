@@ -14,11 +14,11 @@ public class MovieRuntimeValidator {
 					() -> Util.getMovieRuntime(info.getPath()));
 			int runtimeWant = info.getRuntime();
 			int diff = Math.abs(runtimeIs - runtimeWant);
-			if (diff > 5) {
-				System.out.println("Warning: Runtime difference of " + info + " is " + diff
-						+ "min (" + runtimeWant + ")");
+			if (diff > 10) {
+				System.out.println(String.format(
+						"Warning: %s is %d min %s than it should be (expected %d min)", info, diff,
+						runtimeIs > runtimeWant ? "longer" : "shorter", runtimeWant));
 			}
 		}
 	}
-
 }

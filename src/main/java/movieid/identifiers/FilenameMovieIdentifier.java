@@ -24,7 +24,7 @@ public abstract class FilenameMovieIdentifier extends MovieIdentifier {
 	@Override public MovieInfo tryIdentifyMovie(Path input) {
 		log = "";
 		MovieInfo info = Util.getIdentificationStrings(input).stream()
-				.peek(e -> log += "tried " + e).map(this::tryIdentifyMovie)
+				.peek(e -> log += "tried " + e + "\n").map(this::tryIdentifyMovie)
 				.filter(Objects::nonNull).findFirst().orElse(null);
 		if (info == null) {
 			System.out
