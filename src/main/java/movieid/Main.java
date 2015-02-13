@@ -52,7 +52,7 @@ public class Main {
 						});
 
 		new MovieRuntimeValidator().validate(foundMovies);
-		System.out.println("Found: " + foundMovies.size() + "/" + allMovies.size() + " movies");
+		System.out.println("Identified " + foundMovies.size() + "/" + allMovies.size() + " movies");
 		foundMovies.forEach(info -> createTargetLinks(info, outputdir));
 	}
 
