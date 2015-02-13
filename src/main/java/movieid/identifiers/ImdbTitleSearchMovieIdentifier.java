@@ -3,6 +3,7 @@ package movieid.identifiers;
 import java.io.IOException;
 import java.util.Optional;
 
+import movieid.Main;
 import movieid.util.Util;
 
 import org.jsoup.Jsoup;
@@ -15,7 +16,7 @@ public class ImdbTitleSearchMovieIdentifier extends FilenameMovieIdentifier {
 		super("imdb", (search) -> {
 			String url = Util.addUrlParam("http://www.imdb.com/find?s=tt&ttype=ft&q=%s", search);
 
-			System.out.println("getting " + url);
+			Main.log(2, "getting " + url);
 			try {
 				Document doc = Jsoup.connect(url).get();
 				Element ele = doc.select("table.findList a").first();
@@ -24,7 +25,7 @@ public class ImdbTitleSearchMovieIdentifier extends FilenameMovieIdentifier {
 				}
 				return Optional.of(ImdbId.fromUrl(ele.attr("abs:href")));
 			} catch (IOException e) {
-				System.out.println("Could not get url " + url);
+				Main.log(0, "Could not get url " + url);
 				e.printStackTrace();
 				throw new RuntimeException(e);
 			}

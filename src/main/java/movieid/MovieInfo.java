@@ -13,17 +13,20 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
 import movieid.identifiers.ImdbId;
-import movieid.util.ImdbUtil;
 import movieid.util.Util;
 
 public class MovieInfo {
 	public static final String DEFAULT_FORMAT = "{Title} ({Year})";
 	public static final String DEFAULT_FILENAME = "{Title} ({Year}).{Extension}";
 
-	@Getter @Setter private Path path;
+	@Getter
+	@Setter
+	private Path path;
 	private boolean hasMetadata = false;
-	@Getter private ImdbId imdbId;
-	@Getter private Map<String, String> information;
+	@Getter
+	private ImdbId imdbId;
+	@Getter
+	private Map<String, String> information;
 	private static Set<String> multivalueKeys = new HashSet<String>(Arrays.asList("Country",
 			"Genre", "Director"));
 
@@ -35,7 +38,7 @@ public class MovieInfo {
 		MovieInfo info = new MovieInfo();
 		info.hasMetadata = true;
 		info.imdbId = imdbId;
-		info.information = ImdbUtil.getMovieInfo(imdbId);
+		info.information = imdbId.getMovieInfo();
 		return info;
 	}
 
@@ -44,7 +47,7 @@ public class MovieInfo {
 		info.path = file;
 		info.hasMetadata = true;
 		info.imdbId = imdbId;
-		info.information = ImdbUtil.getMovieInfo(imdbId);
+		info.information = imdbId.getMovieInfo();
 		return info;
 	}
 

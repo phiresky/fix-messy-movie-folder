@@ -5,6 +5,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import movieid.Main;
 import movieid.MovieInfo;
 import movieid.util.Util;
 
@@ -17,12 +18,12 @@ public class NfoMovieIdentifier extends MovieIdentifier {
 				return Util.regexInFile(Util.IMDBURL, nfo)
 						.map(imdburl -> MovieInfo.fromImdb(path, ImdbId.fromUrl(imdburl)))
 						.orElseGet(() -> {
-							System.out.println("Invalid nfo: " + nfo);
+							Main.log(1, "Invalid nfo: " + nfo);
 							return null;
 						});
 
 			} catch (UncheckedIOException | IOException e) {
-				System.out.println("Error in file " + nfo);
+				Main.log(1, "Error in file " + nfo);
 				e.printStackTrace();
 			}
 		}

@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
+import movieid.Main;
 import movieid.MovieInfo;
 import movieid.util.CachedHashMap;
 import movieid.util.Util;
@@ -27,8 +28,7 @@ public abstract class FilenameMovieIdentifier extends MovieIdentifier {
 				.peek(e -> log += "tried " + e + "\n").map(this::tryIdentifyMovie)
 				.filter(Objects::nonNull).findFirst().orElse(null);
 		if (info == null) {
-			System.out
-					.println(sourcename + ": Could not find " + input.getFileName() + ":\n" + log);
+			Main.log(2, sourcename + ": Could not find " + input.getFileName() + ":\n" + log);
 		} else {
 			info.setPath(input);
 		}
@@ -40,7 +40,7 @@ public abstract class FilenameMovieIdentifier extends MovieIdentifier {
 		if (imdbid == null)
 			return null;
 		MovieInfo x = MovieInfo.fromImdb(imdbid);
-		// System.out.println(sourcename + ": " + search + " -> " + x);
+		Main.log(3, sourcename + ": " + search + " -> " + x);
 		return x;
 	}
 }

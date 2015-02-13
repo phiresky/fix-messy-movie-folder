@@ -1,14 +1,13 @@
 package movieid.identifiers;
 
 import java.io.IOException;
-import java.util.Optional;
 
+import movieid.Main;
 import movieid.util.Util;
 
 import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
 public class GoogleSearchMovieIdentifier extends FilenameMovieIdentifier {
 	public GoogleSearchMovieIdentifier() {
@@ -16,11 +15,12 @@ public class GoogleSearchMovieIdentifier extends FilenameMovieIdentifier {
 			String url = Util.addUrlParam("http://google.com/search?q=%s", "site:imdb.com "
 					+ search);
 
-			System.out.println("getting " + url);
+			Main.log(2, "getting " + url);
 			try {
 
 				Response resp = Jsoup.connect(url).userAgent(Util.randomUserAgent())
-				/* .referrer(REFERRER) */.followRedirects(true).ignoreHttpErrors(true).execute();
+						/* .referrer(REFERRER) */.followRedirects(true).ignoreHttpErrors(true)
+						.execute();
 
 				Document doc;
 				if (resp.statusCode() == 503 || resp.statusCode() == 502) {
@@ -31,13 +31,11 @@ public class GoogleSearchMovieIdentifier extends FilenameMovieIdentifier {
 				} else {
 					doc = resp.parse();
 				}
-				Element ele = doc.select("a[href*=//www.imdb.com/title/tt]").first();
-				if (ele == null) {
-					return Optional.empty();
-				}
-				return Optional.of(ImdbId.fromUrl(ele.attr("abs:href")));
+				return doc.select("h3 a[href*=//www.imdb.com/title/tt]").stream()
+						.map(ele -> ImdbId.fromUrl(ele.attr("abs:href")))
+						.filter(id -> id.getMovieInfo().get("Type").equals("movie")).findFirst();
 			} catch (IOException e) {
-				System.out.println("could not get url " + url);
+				Main.log(0, "could not get url " + url);
 				e.printStackTrace();
 			}
 			return null;

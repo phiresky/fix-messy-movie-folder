@@ -19,6 +19,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import movieid.Main;
+
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -75,7 +77,7 @@ public class Util {
 					"format").getString("duration");
 			return (int) Math.round(Double.parseDouble(duration) / 60);
 		} catch (IOException e) {
-			System.out.println("Warning: could not read duration of " + path);
+			Main.log(1, "could not read duration of " + path);
 			return -1;
 		}
 
@@ -89,9 +91,10 @@ public class Util {
 					"\\b(DL|DTS|unrated|recut|repack|6.1|dvdrip|brrip|hdw|cis|5\\.1|yiffy|2brothers|xvid|dubbed|sow|owk|hdrip|bluray|PS|AC3D|dvdrip|ac3hd|wodkae|bublik|german|viahd|ld|noelite|blubyte)\\b",
 					Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
 							| Pattern.UNICODE_CHARACTER_CLASS);
-	private static Pattern IGNORE = Pattern.compile("\\b(iNTERNAL|VCF|FuN|par2|TS|DEFUSED|LameHD|PR)\\b",
+	private static Pattern IGNORE = Pattern.compile(
+			"\\b(iNTERNAL|VCF|FuN|par2|TS|DEFUSED|LameHD|PR)\\b",
 
-	Pattern.UNICODE_CHARACTER_CLASS);
+			Pattern.UNICODE_CHARACTER_CLASS);
 	/**
 	 * matches name structure like
 	 * Der.Hobbit.Eine.Unerwartete.Reise.2012.GERMAN.
@@ -141,21 +144,15 @@ public class Util {
 	public static String randomUserAgent() {
 		if (userAgentsCache == null) {
 			userAgentsCache = new ArrayList<>();
-			try(BufferedReader res = new BufferedReader(new InputStreamReader(Util.class.getResourceAsStream("user-agents.txt")))) {
+			try (BufferedReader res = new BufferedReader(new InputStreamReader(
+					Util.class.getResourceAsStream("user-agents.txt")))) {
 				String line;
-				while((line = res.readLine()) != null) userAgentsCache.add(line);
+				while ((line = res.readLine()) != null)
+					userAgentsCache.add(line);
 			} catch (IOException e1) {
 				throw new UncheckedIOException(e1);
 			}
 		}
 		return userAgentsCache.get(ThreadLocalRandom.current().nextInt(userAgentsCache.size()));
-	}
-	
-	private static void openUrlInBrowser(String url) {
-		try {
-			java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
-		} catch (Exception e) {
-			System.out.println("Open the following URL in a Browser: " + url);
-		}
 	}
 }

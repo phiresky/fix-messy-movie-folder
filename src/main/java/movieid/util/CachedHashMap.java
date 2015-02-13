@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import lombok.RequiredArgsConstructor;
+import movieid.Main;
 
 @RequiredArgsConstructor
 public class CachedHashMap<K, V> implements Map<K, V> {
@@ -21,12 +22,12 @@ public class CachedHashMap<K, V> implements Map<K, V> {
 
 	public CachedHashMap(String filename) {
 		map = CachedHashMap.<HashMap<K, V>> tryReadSerialized(filename).orElseGet(() -> {
-			System.out.println("creating new " + filename);
+			Main.log(2, "creating new " + filename);
 			return new HashMap<K, V>();
 		});
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
-				System.out.println("Writing " + filename);
+				Main.log(2, "Writing " + filename);
 				writeSerialized(filename, map);
 			}
 		});
