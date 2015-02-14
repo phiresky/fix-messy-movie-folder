@@ -155,4 +155,12 @@ public class Util {
 		}
 		return userAgentsCache.get(ThreadLocalRandom.current().nextInt(userAgentsCache.size()));
 	}
+
+	public static Optional<Double> parseDouble(String in) {
+		try {
+			return Optional.of(Double.parseDouble(in));
+		} catch (NumberFormatException e) {
+			return Optional.empty();
+		}
+	}
 }

@@ -1,40 +1,56 @@
 package movieid.util;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import lombok.RequiredArgsConstructor;
 import movieid.Main;
 
+import com.cedarsoftware.util.io.JsonReader;
+import com.cedarsoftware.util.io.JsonWriter;
+
 @RequiredArgsConstructor
 public class CachedHashMap<K, V> implements Map<K, V> {
 	private final HashMap<K, V> map;
+	private final static HashMap<String, HashMap<?, ?>> maps;
+	private final static String CACHE_NAME = "movieid-cache.json.gz";
 
-	public CachedHashMap(String filename) {
-		map = CachedHashMap.<HashMap<K, V>> tryReadSerialized(filename).orElseGet(() -> {
-			Main.log(2, "creating new " + filename);
-			return new HashMap<K, V>();
-		});
+	static {
+		maps = CachedHashMap.<HashMap<String, HashMap<?, ?>>> tryReadSerialized(CACHE_NAME)
+				.orElseGet(() -> {
+					Main.log(2, "creating new cache");
+					return new HashMap<String, HashMap<?, ?>>();
+				});
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
-				Main.log(2, "Writing " + filename);
-				writeSerialized(filename, map);
+				Main.log(2, "Writing " + "movieid-cache.json.gz");
+				writeSerialized(CACHE_NAME, maps);
 			}
 		});
 	}
 
+	@SuppressWarnings("unchecked") public CachedHashMap(String cachename) {
+		if (!maps.containsKey(cachename))
+			maps.put(cachename, new HashMap<>());
+		map = (HashMap<K, V>) maps.get(cachename);
+
+	}
+
 	private static <T> Optional<T> tryReadSerialized(String filename) {
-		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
+		try (JsonReader in = new JsonReader(new GZIPInputStream(new FileInputStream(filename)))) {
 			@SuppressWarnings("unchecked")
 			T c = (T) in.readObject();
 			return Optional.of(c);
@@ -42,15 +58,15 @@ public class CachedHashMap<K, V> implements Map<K, V> {
 			// ignore
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
 		}
 		return Optional.empty();
 	}
 
 	private static void writeSerialized(String filename, Object obj) {
-		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
-			out.writeObject(obj);
+		Map<String, Object> args = Stream.of(0).collect(toMap(x -> JsonWriter.PRETTY_PRINT, x -> true));
+		try (JsonWriter out = new JsonWriter(new GZIPOutputStream(new FileOutputStream(filename)),
+				args)) {
+			out.write(obj);
 			out.close();
 		} catch (IOException e) {
 			e.printStackTrace();

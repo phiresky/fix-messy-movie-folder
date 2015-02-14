@@ -175,10 +175,9 @@ public class Main {
 			int year = Integer.parseInt(c);
 			return (year / 10 * 10) + " - " + ((((year + 10) / 10) * 10) - 1);
 		});
-		properties.put("imdbRating", c -> {
-			double rating = Double.parseDouble(c);
-			return Math.floor(rating) + " - " + Math.ceil(rating);
-		});
+		properties.put("imdbRating", c ->
+				Util.parseDouble(c).map(r -> Math.floor(r) + " - " + Math.ceil(r)).orElse(c)
+				);
 		properties.put("Genre", c -> c);
 		properties.put("Director", c -> c);
 

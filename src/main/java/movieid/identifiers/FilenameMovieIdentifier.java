@@ -11,7 +11,7 @@ import movieid.util.CachedHashMap;
 import movieid.util.Util;
 
 public abstract class FilenameMovieIdentifier extends MovieIdentifier {
-	private final CachedHashMap<String, ImdbId> searchcache;
+	private final CachedHashMap<String, String> searchcache;
 	private String log;
 	private Function<String, Optional<ImdbId>> searchfn;
 	private String sourcename;
@@ -36,10 +36,11 @@ public abstract class FilenameMovieIdentifier extends MovieIdentifier {
 	}
 
 	public MovieInfo tryIdentifyMovie(String search) {
-		ImdbId imdbid = searchcache.getCached(search, () -> searchfn.apply(search).orElse(null));
+		String imdbid = searchcache.getCached(search,
+				() -> searchfn.apply(search).map(x -> x.getId()).orElse(null));
 		if (imdbid == null)
 			return null;
-		MovieInfo x = MovieInfo.fromImdb(imdbid);
+		MovieInfo x = MovieInfo.fromImdb(ImdbId.fromId(imdbid));
 		Main.log(3, sourcename + ": " + search + " -> " + x);
 		return x;
 	}
