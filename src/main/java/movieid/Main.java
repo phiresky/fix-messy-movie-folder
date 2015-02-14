@@ -8,8 +8,11 @@ import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import movieid.identifiers.MetadataCsvIdentifier;
@@ -130,7 +133,8 @@ public class Main {
 						metalines);
 		Iterable<String> lineiter = metalines::iterator;
 		try {
-			Files.write(outputdir.resolve("all").resolve(MetadataCsvIdentifier.METADATA_FILENAME), lineiter);
+			Files.write(outputdir.resolve("all").resolve(MetadataCsvIdentifier.METADATA_FILENAME),
+					lineiter);
 		} catch (IOException e) {
 			Main.log(0, "Could not write metadata.csv");
 			e.printStackTrace();
@@ -154,8 +158,25 @@ public class Main {
 
 	}
 
-	static List<String> properties = Arrays.asList("Country", "Year", "imdbRating", "Genre",
-			"Director");
+	private static interface Discretizer extends Function<String, String> {
+	}
+
+	// Map from value name to a discretizer that categorizes near values
+	static Map<String, Discretizer> properties = new HashMap<>();
+	{
+		properties.put("Country", c -> c);
+		properties.put("Year", c -> {
+			int year = Integer.parseInt(c);
+			return (year / 10 * 10) + " - " + ((((year + 10) / 10) * 10) - 1);
+		});
+		properties.put("imdbRating", c -> {
+			double rating = Double.parseDouble(c);
+			return Math.floor(rating) + " - " + Math.ceil(rating);
+		});
+		properties.put("Genre", c -> c);
+		properties.put("Director", c -> c);
+
+	}
 
 	private void createTargetFiles(List<MovieInfo> foundMovies, Path outputdir) {
 		foundMovies.forEach(info -> createTargetFiles(info, outputdir,
@@ -171,10 +192,12 @@ public class Main {
 			Path allFile = allDir.resolve(outputFilename);
 			action.doAction(allFile, info.getPath(),
 					overwrite, printCreatedFiles);
-			for (String property : properties) {
-				for (String val : info.getInformationValues(property)) {
-					Path dir = outputdir.resolve("by-" + Util.sanitizeFilename(property)).resolve(
-							Util.sanitizeFilename(val));
+			for (Entry<String, Discretizer> property : properties.entrySet()) {
+				String propName = property.getKey();
+				Discretizer discretizer = property.getValue();
+				for (String val : info.getInformationValues(propName)) {
+					Path dir = outputdir.resolve("by " + Util.sanitizeFilename(propName)).resolve(
+							Util.sanitizeFilename(discretizer.apply(val)));
 					Files.createDirectories(dir);
 					makeSymlink(dir.resolve(outputFilename), allFile,
 							false, overwrite);
