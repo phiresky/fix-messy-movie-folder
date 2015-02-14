@@ -163,4 +163,12 @@ public class Util {
 			return Optional.empty();
 		}
 	}
+	
+	public static Optional<Integer> parseInt(String in) {
+		try {
+			return Optional.of(Integer.parseInt(in));
+		} catch (NumberFormatException e) {
+			return Optional.empty();
+		}
+	}
 }

@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -82,13 +83,9 @@ public class MovieInfo {
 	/**
 	 * @return movie runtime in minutes
 	 */
-	public int getRuntime() {
+	public Optional<Integer> getRuntime() {
 		String runtime = information.get("Runtime");
 		runtime = runtime.replace(" min", "");
-		try {
-			return Integer.parseInt(runtime);
-		} catch (NumberFormatException e) {
-			return -1;
-		}
+		return Util.parseInt(runtime);
 	}
 }

@@ -53,8 +53,8 @@ public class Main {
 	}
 
 	@Parameter(required = true, names = "-in",
-			description = "The input directory containing the files")
-	private String inputdirname;
+			description = "The input directories containing the files (can be multiple)", variableArity = true)
+	private List<String> inputdirnames;
 	@Parameter(
 			required = true,
 			names = "-out",
@@ -83,9 +83,9 @@ public class Main {
 	private String filenamePattern = MovieInfo.DEFAULT_FILENAME;
 
 	void run() {
-		Path inputdir = Paths.get(inputdirname);
+		Stream<Path> inputfiles = inputdirnames.stream().map(Paths::get).flatMap(Util::walkMovies);
 		Path outputdir = Paths.get(outputdirname);
-		List<MovieInfo> allMovies = Util.walkMovies(inputdir).map(MovieIdentifier::tryAllIdentify)
+		List<MovieInfo> allMovies = inputfiles.map(MovieIdentifier::tryAllIdentify)
 				.collect(toList());
 		List<MovieInfo> unfoundMovies = allMovies.stream().filter(i -> !i.hasMetadata())
 				.collect(toList());

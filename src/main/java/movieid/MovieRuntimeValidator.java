@@ -17,7 +17,7 @@ public class MovieRuntimeValidator {
 		for (MovieInfo info : foundMovies) {
 			int runtimeIs = runtimes.getCached(info.getPath().toAbsolutePath().toString(),
 					() -> Util.getMovieRuntime(info.getPath()));
-			int runtimeWant = info.getRuntime();
+			int runtimeWant = info.getRuntime().orElse(runtimeIs);
 			int diff = Math.abs(runtimeIs - runtimeWant);
 			if (diff >= warningDurationOffset) {
 				Main.log(1, String.format(

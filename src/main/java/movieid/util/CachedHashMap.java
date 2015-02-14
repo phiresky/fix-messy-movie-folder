@@ -67,7 +67,6 @@ public class CachedHashMap<K, V> implements Map<K, V> {
 		try (JsonWriter out = new JsonWriter(new GZIPOutputStream(new FileOutputStream(filename)),
 				args)) {
 			out.write(obj);
-			out.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
