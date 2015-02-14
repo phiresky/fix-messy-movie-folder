@@ -4,7 +4,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import movieid.util.CachedHashMap;
-import movieid.util.Util;
+import movieid.util.FFProbeUtil;
 
 @RequiredArgsConstructor
 public class MovieRuntimeValidator {
@@ -16,7 +16,7 @@ public class MovieRuntimeValidator {
 			return;
 		for (MovieInfo info : foundMovies) {
 			int runtimeIs = runtimes.getCached(info.getPath().toAbsolutePath().toString(),
-					() -> Util.getMovieRuntime(info.getPath()));
+					() -> FFProbeUtil.getMovieRuntime(info.getPath()));
 			int runtimeWant = info.getRuntime().orElse(runtimeIs);
 			int diff = Math.abs(runtimeIs - runtimeWant);
 			if (diff >= warningDurationOffset) {

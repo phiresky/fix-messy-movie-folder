@@ -19,11 +19,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import movieid.Main;
-
-import org.json.JSONObject;
-import org.json.JSONTokener;
-
 public class Util {
 	public static Pattern IMDBURL = Pattern.compile("imdb\\.com/title/tt\\S+");
 	public static Pattern FILENAME = Pattern.compile("[/\\:*?\"<>|]+");
@@ -59,28 +54,6 @@ public class Util {
 		if (o.endsWith("."))
 			return o.substring(0, o.length() - 1);
 		return o;
-	}
-
-	/**
-	 * uses ffprobe to get movie duration
-	 * 
-	 * @param path
-	 *            movie filename
-	 * @return duration in minutes, NaN if could not read
-	 */
-	public static int getMovieRuntime(Path path) {
-
-		try {
-			Process p = new ProcessBuilder("ffprobe", "-loglevel", "quiet", "-show_format_entry",
-					"duration", "-of", "json", path.toAbsolutePath().toString()).start();
-			String duration = new JSONObject(new JSONTokener(p.getInputStream())).getJSONObject(
-					"format").getString("duration");
-			return (int) Math.round(Double.parseDouble(duration) / 60);
-		} catch (IOException e) {
-			Main.log(1, "could not read duration of " + path);
-			return -1;
-		}
-
 	}
 
 	private static Pattern IGNORE_ANYWHERE = Pattern.compile(

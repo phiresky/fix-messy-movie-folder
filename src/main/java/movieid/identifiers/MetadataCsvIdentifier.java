@@ -27,6 +27,7 @@ public class MetadataCsvIdentifier extends MovieIdentifier {
 				Files.lines(metafile).filter(line -> !line.startsWith("#"))
 						.map(line -> line.split(METADATA_SEPERATOR))
 						.forEach(l -> cache.put(l[0], ImdbId.fromId(l[1])));
+				Main.log(2, "Imported metadata from " + metafile);
 				return MovieInfo.fromImdb(input, cache.get(fname));
 			} catch (IOException e) {
 				Main.log(1, "Error reading " + metafile);

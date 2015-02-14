@@ -3,5 +3,5 @@
 /.settings
 /bin
 /.gradle
-/*-cache
+/*-cache.json.gz
 /build

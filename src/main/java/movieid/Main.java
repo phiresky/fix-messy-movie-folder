@@ -8,15 +8,18 @@ import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import movieid.identifiers.MetadataCsvIdentifier;
 import movieid.identifiers.MovieIdentifier;
+import movieid.util.FFProbeUtil;
 import movieid.util.Util;
 
 import com.beust.jcommander.JCommander;
@@ -46,14 +49,26 @@ public class Main {
 			case HARDLINK:
 				Files.createLink(newLoc, oldLoc);
 			default:
-				break;
-
+				throw new IllegalArgumentException("unknown action: " + this);
 			}
 		}
 	}
 
+	private enum DuplicateAction {
+		SKIP_ALL, HIGHER_BITRATE, HIGHER_RESOLUTION;
+		Comparator<MovieInfo> getComparator() {
+			if (this == HIGHER_BITRATE)
+				return Comparator.comparing(i -> FFProbeUtil.getBitrate(i.getPath()));
+			if (this == HIGHER_RESOLUTION)
+				return Comparator.comparing(i -> FFProbeUtil.getResolution(i.getPath()));
+			else
+				throw new IllegalArgumentException("no comparator: " + this);
+		}
+	}
+
 	@Parameter(required = true, names = "-in",
-			description = "The input directories containing the files (can be multiple)", variableArity = true)
+			description = "The input directories containing the files (can be multiple)",
+			variableArity = true)
 	private List<String> inputdirnames;
 	@Parameter(
 			required = true,
@@ -81,6 +96,10 @@ public class Main {
 			names = "-filename",
 			description = "The pattern for the output filename. Possible keys are currently those that http://www.omdbapi.com/ returns and {Extension}")
 	private String filenamePattern = MovieInfo.DEFAULT_FILENAME;
+	@Parameter(
+			names = "-duplicates",
+			description = "What to do when a movie is found multiple times. By default, all copies are skipped as this might indicate split movie files. Allowed: skip_all, higher_bitrate, higher_resolution")
+	private DuplicateAction duplicateAction = DuplicateAction.SKIP_ALL;
 
 	void run() {
 		Stream<Path> inputfiles = inputdirnames.stream().map(Paths::get).flatMap(Util::walkMovies);
@@ -107,6 +126,12 @@ public class Main {
 	}
 
 	private void removeDuplicates(List<MovieInfo> foundMovies) {
+		BiConsumer<MovieInfo, Boolean> log = (info, keep) -> Main.logNoPrefix(
+				1,
+				String.format("[%s] %.1f MP, %.1f MBit/s: %s", keep ? "keep" : "skip",
+						FFProbeUtil.getResolution(info.getPath()),
+						FFProbeUtil.getBitrate(info.getPath()),
+						info.getPath()));
 		foundMovies
 				.stream()
 				.collect(groupingBy(info -> info.getImdbId()))
@@ -116,10 +141,15 @@ public class Main {
 				.forEach(
 						list -> {
 							Main.log(1, String.format(
-									"found %d duplicates for %s, ignoring all:",
+									"found %d duplicates for %s:",
 									list.size(), list.get(0).format(MovieInfo.DEFAULT_FILENAME)));
+							if (duplicateAction != DuplicateAction.SKIP_ALL) {
+								list.sort(duplicateAction.getComparator());
+								MovieInfo keep = list.remove(list.size() - 1);
+								log.accept(keep, true);
+							}
 							for (MovieInfo info : list) {
-								Main.logNoPrefix(1, info.getPath());
+								log.accept(info, false);
 								foundMovies.remove(info);
 							}
 						});
@@ -130,10 +160,12 @@ public class Main {
 		Stream<String> metalines =
 				foundMovies.stream().map(
 						info -> filename.apply(info) + MetadataCsvIdentifier.METADATA_SEPERATOR
-								+ info.getImdbId());
+								+ info.getImdbId() + MetadataCsvIdentifier.METADATA_SEPERATOR
+								+ info.getPath());
 		metalines = Stream
 				.concat(Stream
-						.of("# this file is used by https://github.com/phiresky/fix-messy-movie-folder to easily identify movies"),
+						.of("# this file is used by https://github.com/phiresky/fix-messy-movie-folder to easily identify movies",
+								"# filename, IMDb id, original filename"),
 						metalines);
 		Iterable<String> lineiter = metalines::iterator;
 		Path metadatafile = outputdir.resolve("all").resolve(
@@ -213,14 +245,15 @@ public class Main {
 		}
 	}
 
-	private static void makeSymlink(Path from, Path to, boolean printIfNew, boolean overwrite)
+	private static void makeSymlink(Path from, Path toAbsolute, boolean printIfNew,
+			boolean overwrite)
 			throws IOException {
-		to = from.getParent().relativize(to);
+		Path to = from.getParent().relativize(toAbsolute);
 		if (Files.isSymbolicLink(from)) {
 			if (!Files.readSymbolicLink(from).equals(to)) {
 				if (overwrite) {
 					Files.delete(from);
-					makeSymlink(from, to, printIfNew, overwrite);
+					makeSymlink(from, toAbsolute, printIfNew, overwrite);
 				} else {
 					throw new IOException(from + " already exists and points to "
 							+ Files.readSymbolicLink(from) + " instead of " + to);
