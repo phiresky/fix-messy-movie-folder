@@ -10,7 +10,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import movieid.Main;
@@ -24,7 +23,6 @@ import org.json.JSONTokener;
 public class ImdbId implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	@Getter
 	private final String id;
 
 	private static Pattern IMDBID_PATTERN = Pattern.compile("(tt\\d+)");
@@ -58,6 +56,9 @@ public class ImdbId implements Serializable {
 			}
 			return null;
 		});
-
+	}
+	
+	public String toString() {
+		return id;
 	}
 }

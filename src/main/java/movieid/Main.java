@@ -4,12 +4,15 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
+import movieid.identifiers.MetadataCsvIdentifier;
 import movieid.identifiers.MovieIdentifier;
 import movieid.util.Util;
 
@@ -18,6 +21,34 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
 public class Main {
+	private enum OutputAction {
+		SYMLINK, HARDLINK, COPY, MOVE;
+		void doAction(Path newLoc, Path oldLoc, boolean replaceExisting, boolean printCreatedFiles)
+				throws IOException {
+			CopyOption[] attrs = {};
+			if (replaceExisting)
+				attrs = new CopyOption[] { java.nio.file.StandardCopyOption.REPLACE_EXISTING };
+			switch (this) {
+			case COPY:
+				Files.copy(oldLoc, newLoc, attrs);
+				Main.logNoPrefix(0, "New file: " + newLoc);
+				break;
+			case MOVE:
+				Files.move(oldLoc, newLoc, attrs);
+				Main.logNoPrefix(0, "New file: " + newLoc);
+				break;
+			case SYMLINK:
+				makeSymlink(newLoc, oldLoc, printCreatedFiles, replaceExisting);
+				break;
+			case HARDLINK:
+				Files.createLink(newLoc, oldLoc);
+			default:
+				break;
+
+			}
+		}
+	}
+
 	@Parameter(required = true, names = "-in",
 			description = "The input directory containing the files")
 	private String inputdirname;
@@ -35,14 +66,22 @@ public class Main {
 			names = "-durationWarning",
 			description = "minimum minutes of offset in expected movie duration from imdb compared to movie file that print a warning. 0 to disable")
 	private int warningDurationOffset = 10;
-	@Parameter(names = { "-h", "--help" }, help = true)
+	@Parameter(names = { "-h", "--help", "-help" }, help = true)
 	public boolean help;
 	@Parameter(names = { "-v" }, description = "Verbose output level")
 	private static int verbose = 1;
+	@Parameter(
+			names = "-action",
+			description = "What to do with the new files. If this is symlink, the old folder must not be deleted! Allowed: copy, move, symlink, hardlink")
+	private static OutputAction action = OutputAction.SYMLINK;
+	@Parameter(
+			names = "-filename",
+			description = "The pattern for the output filename. Possible keys are currently those that http://www.omdbapi.com/ returns and {Extension}")
+	private String filenamePattern = MovieInfo.DEFAULT_FILENAME;
 
 	void run() {
-		Path inputdir = Paths.get(inputdirname).toAbsolutePath();
-		Path outputdir = Paths.get(outputdirname).toAbsolutePath();
+		Path inputdir = Paths.get(inputdirname);
+		Path outputdir = Paths.get(outputdirname);
 		List<MovieInfo> allMovies = Util.walkMovies(inputdir).map(MovieIdentifier::tryAllIdentify)
 				.collect(toList());
 		List<MovieInfo> unfoundMovies = allMovies.stream().filter(i -> !i.hasMetadata())
@@ -53,6 +92,16 @@ public class Main {
 		}
 		List<MovieInfo> foundMovies = allMovies.stream().filter(MovieInfo::hasMetadata)
 				.collect(toList());
+		removeDuplicates(foundMovies);
+
+		new MovieRuntimeValidator(warningDurationOffset).validate(foundMovies);
+		Main.logNoPrefix(1, "Identified " + foundMovies.size() + "/" + allMovies.size() + " movies");
+		createTargetFiles(foundMovies, outputdir);
+
+		writeMetadata(foundMovies, outputdir);
+	}
+
+	private void removeDuplicates(List<MovieInfo> foundMovies) {
 		foundMovies
 				.stream()
 				.collect(groupingBy(info -> info.getImdbId()))
@@ -69,10 +118,23 @@ public class Main {
 								foundMovies.remove(info);
 							}
 						});
+	}
 
-		new MovieRuntimeValidator(warningDurationOffset).validate(foundMovies);
-		Main.log(1, "Identified " + foundMovies.size() + "/" + allMovies.size() + " movies");
-		foundMovies.forEach(info -> createTargetLinks(info, outputdir));
+	private void writeMetadata(List<MovieInfo> foundMovies, Path outputdir) {
+		Stream<String> metalines =
+				foundMovies.stream().map(
+						info -> info.getPath().getFileName() + "," + info.getImdbId());
+		metalines = Stream
+				.concat(Stream
+						.of("# this file is used by https://github.com/phiresky/fix-messy-movie-folder to easily identify movies"),
+						metalines);
+		Iterable<String> lineiter = metalines::iterator;
+		try {
+			Files.write(outputdir.resolve("all").resolve(MetadataCsvIdentifier.METADATA_FILENAME), lineiter);
+		} catch (IOException e) {
+			Main.log(0, "Could not write metadata.csv");
+			e.printStackTrace();
+		}
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -95,21 +157,27 @@ public class Main {
 	static List<String> properties = Arrays.asList("Country", "Year", "imdbRating", "Genre",
 			"Director");
 
-	private void createTargetLinks(MovieInfo info, Path outputdir) {
-		Path normalizedFilename = Paths.get(Util.sanitizeFilename(info
-				.format(MovieInfo.DEFAULT_FILENAME)));
+	private void createTargetFiles(List<MovieInfo> foundMovies, Path outputdir) {
+		foundMovies.forEach(info -> createTargetFiles(info, outputdir,
+				Paths.get(Util.sanitizeFilename(info
+						.format(filenamePattern)))));
+	}
+
+	private void createTargetFiles(MovieInfo info, Path outputdir, Path outputFilename) {
+
 		try {
 			Path allDir = outputdir.resolve("all");
 			Files.createDirectories(allDir);
-			makeSymlink(allDir.resolve(normalizedFilename), allDir.relativize(info.getPath()),
-					printCreatedFiles);
+			Path allFile = allDir.resolve(outputFilename);
+			action.doAction(allFile, info.getPath(),
+					overwrite, printCreatedFiles);
 			for (String property : properties) {
 				for (String val : info.getInformationValues(property)) {
 					Path dir = outputdir.resolve("by-" + Util.sanitizeFilename(property)).resolve(
 							Util.sanitizeFilename(val));
 					Files.createDirectories(dir);
-					makeSymlink(dir.resolve(normalizedFilename), dir.relativize(info.getPath()),
-							false);
+					makeSymlink(dir.resolve(outputFilename), allFile,
+							false, overwrite);
 				}
 			}
 		} catch (IOException e) {
@@ -118,12 +186,14 @@ public class Main {
 		}
 	}
 
-	private void makeSymlink(Path from, Path to, boolean printIfNew) throws IOException {
+	private static void makeSymlink(Path from, Path to, boolean printIfNew, boolean overwrite)
+			throws IOException {
+		to = from.getParent().relativize(to);
 		if (Files.isSymbolicLink(from)) {
 			if (!Files.readSymbolicLink(from).equals(to)) {
 				if (overwrite) {
 					Files.delete(from);
-					makeSymlink(from, to, printIfNew);
+					makeSymlink(from, to, printIfNew, overwrite);
 				} else {
 					throw new IOException(from + " already exists and points to "
 							+ Files.readSymbolicLink(from) + " instead of " + to);
@@ -131,7 +201,7 @@ public class Main {
 			}
 		} else {
 			if (printIfNew)
-				Main.logNoPrefix(0, "New link: " + from + "->" + to);
+				Main.logNoPrefix(0, "New link: " + from + " -> " + to);
 			Files.createSymbolicLink(from, to);
 		}
 	}

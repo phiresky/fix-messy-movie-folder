@@ -17,7 +17,7 @@ import movieid.util.Util;
 
 public class MovieInfo {
 	public static final String DEFAULT_FORMAT = "{Title} ({Year})";
-	public static final String DEFAULT_FILENAME = "{Title} ({Year}).{Extension}";
+	public static final String DEFAULT_FILENAME = "{Title} ({Year}) [{imdbRating}].{Extension}";
 
 	@Getter
 	@Setter
