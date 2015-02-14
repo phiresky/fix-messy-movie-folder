@@ -14,17 +14,20 @@ import movieid.MovieInfo;
  */
 public class MetadataCsvIdentifier extends MovieIdentifier {
 	public final static String METADATA_FILENAME = ".metadata.csv";
+	public static final String METADATA_SEPERATOR = "\t";
 	private Map<String, ImdbId> cache = new HashMap<>();
 
 	@Override public MovieInfo tryIdentifyMovie(Path input) {
-		if (cache.containsKey(input.getFileName().toString()))
-			return MovieInfo.fromImdb(input, cache.get(input.getFileName()));
+		String fname = input.getFileName().toString();
+		if (cache.containsKey(fname))
+			return MovieInfo.fromImdb(input, cache.get(fname));
 		Path metafile = input.getParent().resolve(METADATA_FILENAME);
 		if (Files.isRegularFile(metafile)) {
 			try {
-				Files.lines(metafile).map(line -> line.split(","))
+				Files.lines(metafile).filter(line -> !line.startsWith("#"))
+						.map(line -> line.split(METADATA_SEPERATOR))
 						.forEach(l -> cache.put(l[0], ImdbId.fromId(l[1])));
-				return MovieInfo.fromImdb(input, cache.get(input.getFileName().toString()));
+				return MovieInfo.fromImdb(input, cache.get(fname));
 			} catch (IOException e) {
 				Main.log(1, "Error reading " + metafile);
 				e.printStackTrace();

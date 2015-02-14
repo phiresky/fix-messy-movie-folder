@@ -90,7 +90,7 @@ public class Main {
 		List<MovieInfo> unfoundMovies = allMovies.stream().filter(i -> !i.hasMetadata())
 				.collect(toList());
 		if (unfoundMovies.size() > 0) {
-			Main.log(1, "Not found:");
+			Main.log(1, "Could not identify:");
 			unfoundMovies.forEach(m -> Main.log(1, m));
 		}
 		List<MovieInfo> foundMovies = allMovies.stream().filter(MovieInfo::hasMetadata)
@@ -99,9 +99,11 @@ public class Main {
 
 		new MovieRuntimeValidator(warningDurationOffset).validate(foundMovies);
 		Main.logNoPrefix(1, "Identified " + foundMovies.size() + "/" + allMovies.size() + " movies");
-		createTargetFiles(foundMovies, outputdir);
+		Function<MovieInfo, String> getFilename = info -> Util.sanitizeFilename(info
+				.format(filenamePattern));
+		createTargetFiles(foundMovies, outputdir, getFilename);
 
-		writeMetadata(foundMovies, outputdir);
+		writeMetadata(foundMovies, outputdir, getFilename);
 	}
 
 	private void removeDuplicates(List<MovieInfo> foundMovies) {
@@ -123,18 +125,22 @@ public class Main {
 						});
 	}
 
-	private void writeMetadata(List<MovieInfo> foundMovies, Path outputdir) {
+	private void writeMetadata(List<MovieInfo> foundMovies, Path outputdir,
+			Function<MovieInfo, String> filename) {
 		Stream<String> metalines =
 				foundMovies.stream().map(
-						info -> info.getPath().getFileName() + "," + info.getImdbId());
+						info -> filename.apply(info) + MetadataCsvIdentifier.METADATA_SEPERATOR
+								+ info.getImdbId());
 		metalines = Stream
 				.concat(Stream
 						.of("# this file is used by https://github.com/phiresky/fix-messy-movie-folder to easily identify movies"),
 						metalines);
 		Iterable<String> lineiter = metalines::iterator;
+		Path metadatafile = outputdir.resolve("all").resolve(
+				MetadataCsvIdentifier.METADATA_FILENAME);
 		try {
-			Files.write(outputdir.resolve("all").resolve(MetadataCsvIdentifier.METADATA_FILENAME),
-					lineiter);
+			Files.write(metadatafile, lineiter);
+			Files.setAttribute(metadatafile, "dos:hidden", true);
 		} catch (IOException e) {
 			Main.log(0, "Could not write metadata.csv");
 			e.printStackTrace();
@@ -178,14 +184,13 @@ public class Main {
 
 	}
 
-	private void createTargetFiles(List<MovieInfo> foundMovies, Path outputdir) {
+	private void createTargetFiles(List<MovieInfo> foundMovies, Path outputdir,
+			Function<MovieInfo, String> filename) {
 		foundMovies.forEach(info -> createTargetFiles(info, outputdir,
-				Paths.get(Util.sanitizeFilename(info
-						.format(filenamePattern)))));
+				Paths.get(filename.apply(info))));
 	}
 
 	private void createTargetFiles(MovieInfo info, Path outputdir, Path outputFilename) {
-
 		try {
 			Path allDir = outputdir.resolve("all");
 			Files.createDirectories(allDir);
