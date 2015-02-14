@@ -1,10 +1,12 @@
 package movieid;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
 import java.nio.file.CopyOption;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -101,8 +103,16 @@ public class Main {
 			description = "What to do when a movie is found multiple times. By default, all copies are skipped as this might indicate split movie files. Allowed: skip_all, higher_bitrate, higher_resolution")
 	private DuplicateAction duplicateAction = DuplicateAction.SKIP_ALL;
 
+	private Map<Path, Path> originalRelativePaths = new HashMap<>();
+
 	void run() {
-		Stream<Path> inputfiles = inputdirnames.stream().map(Paths::get).flatMap(Util::walkMovies);
+		Stream<Path> inputfiles = inputdirnames
+				.stream()
+				.map(Paths::get)
+				.flatMap(
+						rootdir -> Util.walkMovies(rootdir).peek(
+								p -> originalRelativePaths.put(p,
+										rootdir.getFileName().resolve(rootdir.relativize(p)))));
 		Path outputdir = Paths.get(outputdirname);
 		List<MovieInfo> allMovies = inputfiles.map(MovieIdentifier::tryAllIdentify)
 				.collect(toList());
@@ -172,7 +182,11 @@ public class Main {
 				MetadataCsvIdentifier.METADATA_FILENAME);
 		try {
 			Files.write(metadatafile, lineiter);
-			Files.setAttribute(metadatafile, "dos:hidden", true);
+			try {
+				Files.setAttribute(metadatafile, "dos:hidden", true);
+			} catch (FileSystemException e) {
+				// can't set hidden, ignore
+			}
 		} catch (IOException e) {
 			Main.log(0, "Could not write metadata.csv");
 			e.printStackTrace();
@@ -196,44 +210,60 @@ public class Main {
 
 	}
 
-	private static interface Discretizer extends Function<String, String> {
+	private static interface Discretizer extends Function<MovieInfo, List<String>> {
+	}
+
+	private static Discretizer makeInfoDiscretizer(String propName,
+			Function<String, String> discretizer) {
+		return (MovieInfo info) -> info.getInformationValues(propName).stream()
+				.map(discretizer::apply).map(Util::sanitizeFilename).collect(toList());
 	}
 
 	// Map from value name to a discretizer that categorizes near values
 	static Map<String, Discretizer> properties = new HashMap<>();
 	{
-		properties.put("Country", c -> c);
-		properties.put("Year", c -> {
+		properties.put("country", makeInfoDiscretizer("Country", c -> c));
+		properties.put("year", makeInfoDiscretizer("Year", c -> {
 			int year = Integer.parseInt(c);
 			return (year / 10 * 10) + " - " + ((((year + 10) / 10) * 10) - 1);
-		});
-		properties.put("imdbRating", c ->
+		}));
+		properties.put("imdb rating", makeInfoDiscretizer("imdbRating", c ->
 				Util.parseDouble(c).map(r -> Math.floor(r) + " - " + Math.ceil(r)).orElse(c)
-				);
-		properties.put("Genre", c -> c);
-		properties.put("Director", c -> c);
+				));
+		properties.put("genre", makeInfoDiscretizer("Genre", c -> c));
+		properties.put("director", makeInfoDiscretizer("Director", c -> c));
+		properties.put("resolution",
+				info -> asList(FFProbeUtil.getResolutionString(info.getPath())));
 
 	}
 
 	private void createTargetFiles(List<MovieInfo> foundMovies, Path outputdir,
 			Function<MovieInfo, String> filename) {
 		foundMovies.forEach(info -> createTargetFiles(info, outputdir,
+
 				Paths.get(filename.apply(info))));
 	}
 
-	private void createTargetFiles(MovieInfo info, Path outputdir, Path outputFilename) {
+	private void createTargetFiles(MovieInfo info, Path outputdir,
+			Path outputFilename) {
 		try {
 			Path allDir = outputdir.resolve("all");
 			Files.createDirectories(allDir);
 			Path allFile = allDir.resolve(outputFilename);
 			action.doAction(allFile, info.getPath(),
 					overwrite, printCreatedFiles);
+
+			Path origAlias = outputdir.resolve("by original structure").resolve(
+					originalRelativePaths.get(info.getPath()));
+			Files.createDirectories(origAlias.getParent());
+			makeSymlink(origAlias, allFile, false, overwrite);
+
 			for (Entry<String, Discretizer> property : properties.entrySet()) {
 				String propName = property.getKey();
 				Discretizer discretizer = property.getValue();
-				for (String val : info.getInformationValues(propName)) {
+				for (String val : discretizer.apply(info)) {
 					Path dir = outputdir.resolve("by " + Util.sanitizeFilename(propName)).resolve(
-							Util.sanitizeFilename(discretizer.apply(val)));
+							val);
 					Files.createDirectories(dir);
 					makeSymlink(dir.resolve(outputFilename), allFile,
 							false, overwrite);

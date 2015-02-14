@@ -64,4 +64,20 @@ public class FFProbeUtil {
 		}
 		return out;
 	}
+
+	public static String getResolutionString(Path path) {
+		double res = getResolution(path);
+		if (res > 1.3)
+			return "1080p Full HD";
+		if (res > 0.5)
+			return "720p Half HD";
+		if (res > 0.28)
+			return "DVD";
+		if (res > 0.2)
+			return "kinda shitty";
+		if (res > 0.15)
+			return "pretty shitty";
+		else
+			return "pure shit";
+	}
 }
