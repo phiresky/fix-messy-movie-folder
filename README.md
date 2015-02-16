@@ -4,7 +4,7 @@ Try to identify movie files in messy/unsorted folders
 
 This program recursively reads movies and identifies them using online searches for the filename etc.
 
-It can then create a sorted folder structure consisting of symlinks, using the standardized name `{title} ({year}).{ext}` and various sorted folders such as genre, imdb rating, and year.
+It can then create a sorted folder structure consisting of symlinks, using the standardized name `{title} ({year}) [imdbRating].{ext}` and various sorted folders such as genre, imdb rating, and year.
 
 ### Demo
 
