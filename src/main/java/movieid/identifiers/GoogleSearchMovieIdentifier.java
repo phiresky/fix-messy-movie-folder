@@ -9,6 +9,12 @@ import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+/**
+ * Searches using normal google search, looking for the first imdb link on the
+ * page
+ * 
+ * this is the identification method that works most often
+ */
 public class GoogleSearchMovieIdentifier extends FilenameMovieIdentifier {
 	public GoogleSearchMovieIdentifier() {
 		super("google", (search) -> {

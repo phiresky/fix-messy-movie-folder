@@ -9,6 +9,10 @@ import movieid.Main;
 import movieid.MovieInfo;
 import movieid.util.Util;
 
+/**
+ * When there is a .nfo file with the same name as the movie, search that for
+ * imdb links
+ */
 public class NfoMovieIdentifier extends MovieIdentifier {
 
 	@Override public MovieInfo tryIdentifyMovie(Path path) {

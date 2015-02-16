@@ -8,11 +8,11 @@ import movieid.MovieInfo;
 import movieid.util.CachedHashMap;
 
 /**
- * Identifies movies using title search from a filename matching the output of
- * this program ( {Title} ({year}).* )
+ * Identifies movies using title search from a fairly ordered filename matching the output of
+ * this program ( like {Title} ({year}).mkv )
  */
 public class OmdbReverseIdentifier extends MovieIdentifier {
-	Pattern PATTERN = Pattern.compile("(.*) \\(([12][0-9][0-9][0-9])\\) .*");
+	Pattern PATTERN = Pattern.compile("(.*) \\(([12][0-9][0-9][0-9])\\).*");
 	private CachedHashMap<String, String> ids = new CachedHashMap<>("omdb-title-search-cache");
 
 	@Override public MovieInfo tryIdentifyMovie(Path input) {

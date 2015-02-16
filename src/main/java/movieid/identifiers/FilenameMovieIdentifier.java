@@ -10,6 +10,19 @@ import movieid.MovieInfo;
 import movieid.util.CachedHashMap;
 import movieid.util.Util;
 
+/**
+ * Identifies movies by searching some search engine for the file name, removing
+ * some common strings such as "BluRay". Also tests folder names:
+ * 
+ * The uppermost folder name that only has this video file is searched first,
+ * then the subfolders and in the end the file name. Example:
+ * 
+ * input:
+ * <code>/Action/Knight.and.Day.Extended.Cut.German.720p.BluRay.x264-DECENT/dec-kade.720p.mkv</code>
+ * 
+ * searches: "Knight and Day Extended Cut", and if that is not found, searches
+ * "dec kade".
+ */
 public abstract class FilenameMovieIdentifier extends MovieIdentifier {
 	private final CachedHashMap<String, String> searchcache;
 	private String log;

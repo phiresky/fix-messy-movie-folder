@@ -12,7 +12,8 @@ import movieid.Main;
 import movieid.MovieInfo;
 
 /**
- * Identifies movies using the metadata.csv this program outputs
+ * Identifies movies using the metadata.csv this program outputs in
+ * {@link Main#writeMetadata}
  */
 public class MetadataCsvIdentifier extends MovieIdentifier {
 	public final static String METADATA_FILENAME = ".metadata.csv";

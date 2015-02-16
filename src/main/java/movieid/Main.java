@@ -74,7 +74,7 @@ public class Main {
 	}
 
 	@Parameter(required = true, names = "-in",
-			description = "The input directories containing the files (can be multiple)",
+			description = "The input directories containing the files (can be multiple: -in dir1 dir2 dir3)",
 			variableArity = true)
 	private List<String> inputdirnames;
 	@Parameter(
@@ -85,7 +85,7 @@ public class Main {
 	@Parameter(names = "-printCreated",
 			description = "Print a list of movies that were newly found")
 	private boolean printCreatedFiles;
-	@Parameter(names = "-overwrite", description = "Overwrite existing files")
+	@Parameter(names = "-overwrite", description = "Overwrite existing files in output directory")
 	private boolean overwrite;
 	@Parameter(
 			names = "-durationWarning",
@@ -97,11 +97,11 @@ public class Main {
 	private static int verbose = 1;
 	@Parameter(
 			names = "-action",
-			description = "What to do with the new files. If this is symlink, the old folder must not be deleted! Allowed: copy, move, symlink, hardlink")
+			description = "What to do with the new files. If this is symlink, the old folder must not be deleted! Hardlink is only supported when output is on the same drive as input. Allowed: copy, move, symlink, hardlink")
 	private static OutputAction action = OutputAction.SYMLINK;
 	@Parameter(
 			names = "-filename",
-			description = "The pattern for the output filename. Possible keys are currently those that http://www.omdbapi.com/ returns and {Extension}")
+			description = "The pattern for the output filename. Possible keys are currently those that http://www.omdbapi.com/ returns plus {Extension}")
 	private String filenamePattern = MovieInfo.DEFAULT_FILENAME;
 	@Parameter(
 			names = "-duplicates",

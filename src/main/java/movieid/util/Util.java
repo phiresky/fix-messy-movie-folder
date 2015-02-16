@@ -20,6 +20,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import movieid.identifiers.FilenameMovieIdentifier;
+
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -95,6 +97,7 @@ public class Util {
 		return filename.trim();
 	}
 
+	/** {@link FilenameMovieIdentifier} */
 	public static List<String> getIdentificationStrings(Path input) {
 		LinkedList<String> paths = new LinkedList<>();
 		do {

@@ -10,6 +10,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+/**
+ * search on imdb by title. works less often than google search 
+ */
 public class ImdbTitleSearchMovieIdentifier extends FilenameMovieIdentifier {
 
 	public ImdbTitleSearchMovieIdentifier() {
