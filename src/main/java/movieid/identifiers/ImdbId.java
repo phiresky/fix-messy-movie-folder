@@ -4,8 +4,8 @@ import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,9 +14,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import movieid.Main;
 import movieid.util.CachedHashMap;
+import movieid.util.Util;
 
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
 @RequiredArgsConstructor
 @Data
@@ -41,6 +41,26 @@ public class ImdbId implements Serializable {
 		return new ImdbId(imdbid);
 	}
 
+	public static Optional<ImdbId> fromTitleAndYear(@NonNull String title, @NonNull String year) {
+		String url = Util.addUrlParam("http://www.omdbapi.com/?type=movie&t=%s&y=%s", title, year);
+		Main.log(3, "getting: " + url);
+		try {
+			JSONObject data = Util.getJSON(url);
+			if (data.getString("Response").equals("False")) {
+				Main.log(2, data.getString("Error"));
+				return Optional.empty();
+			} else {
+				String id = data.getString("imdbID");
+				imdbidcache.put(id,
+						data.keySet().stream().collect(toMap(key -> key, data::getString)));
+				return Optional.of(ImdbId.fromId(id));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return Optional.empty();
+	}
+
 	private static CachedHashMap<String, Map<String, String>> imdbidcache = new CachedHashMap<>(
 			"imdb-id-cache");
 
@@ -48,8 +68,7 @@ public class ImdbId implements Serializable {
 		return imdbidcache.getCached(id, () -> {
 			try {
 				Main.log(2, "loading omdb " + id);
-				JSONObject data = new JSONObject(new JSONTokener(new URL(
-						"http://www.omdbapi.com/?i=" + id).openStream()));
+				JSONObject data = Util.getJSON("http://www.omdbapi.com/?i=" + id);
 				return data.keySet().stream().collect(toMap(key -> key, data::getString));
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -57,7 +76,7 @@ public class ImdbId implements Serializable {
 			return null;
 		});
 	}
-	
+
 	public String toString() {
 		return id;
 	}

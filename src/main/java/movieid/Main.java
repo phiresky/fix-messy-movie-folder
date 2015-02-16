@@ -10,6 +10,7 @@ import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -50,6 +51,7 @@ public class Main {
 				break;
 			case HARDLINK:
 				Files.createLink(newLoc, oldLoc);
+				break;
 			default:
 				throw new IllegalArgumentException("unknown action: " + this);
 			}
@@ -184,7 +186,7 @@ public class Main {
 		Path metadatafile = outputdir.resolve("all").resolve(
 				MetadataCsvIdentifier.METADATA_FILENAME);
 		try {
-			Files.write(metadatafile, lineiter);
+			Files.write(metadatafile, lineiter, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 			try {
 				Files.setAttribute(metadatafile, "dos:hidden", true);
 			} catch (FileSystemException e) {
@@ -219,7 +221,7 @@ public class Main {
 	private static Discretizer makeInfoDiscretizer(String propName,
 			Function<String, String> discretizer) {
 		return (MovieInfo info) -> info.getInformationValues(propName).stream()
-				.map(discretizer::apply).map(Util::sanitizeFilename).collect(toList());
+				.map(discretizer).map(Util::sanitizeFilename).collect(toList());
 	}
 
 	// Map from value name to a discretizer that categorizes near values
@@ -243,7 +245,6 @@ public class Main {
 	private void createTargetFiles(List<MovieInfo> foundMovies, Path outputdir,
 			Function<MovieInfo, String> filename) {
 		foundMovies.forEach(info -> createTargetFiles(info, outputdir,
-
 				Paths.get(filename.apply(info))));
 	}
 

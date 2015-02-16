@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -18,6 +19,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 public class Util {
 	public static Pattern IMDBURL = Pattern.compile("imdb\\.com/title/tt\\S+");
@@ -136,12 +140,16 @@ public class Util {
 			return Optional.empty();
 		}
 	}
-	
+
 	public static Optional<Integer> parseInt(String in) {
 		try {
 			return Optional.of(Integer.parseInt(in));
 		} catch (NumberFormatException e) {
 			return Optional.empty();
 		}
+	}
+
+	public static JSONObject getJSON(String url) throws IOException {
+		return new JSONObject(new JSONTokener(new URL(url).openStream()));
 	}
 }
