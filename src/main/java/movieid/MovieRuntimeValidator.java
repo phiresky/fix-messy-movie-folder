@@ -12,6 +12,8 @@ public class MovieRuntimeValidator {
 	private final int warningDurationOffset;
 
 	public void validate(List<MovieInfo> foundMovies) {
+		if (!FFProbeUtil.ffprobeAvailable())
+			return;
 		if (warningDurationOffset == 0)
 			return;
 		for (MovieInfo info : foundMovies) {

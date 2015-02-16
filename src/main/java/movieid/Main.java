@@ -59,6 +59,9 @@ public class Main {
 	private enum DuplicateAction {
 		SKIP_ALL, HIGHER_BITRATE, HIGHER_RESOLUTION;
 		Comparator<MovieInfo> getComparator() {
+			if (this != SKIP_ALL && !FFProbeUtil.ffprobeAvailable()) {
+				throw new IllegalArgumentException("Can't compare " + this + " without ffprobe");
+			}
 			if (this == HIGHER_BITRATE)
 				return Comparator.comparing(i -> FFProbeUtil.getBitrate(i.getPath()));
 			if (this == HIGHER_RESOLUTION)
@@ -278,7 +281,12 @@ public class Main {
 	private static void makeSymlink(Path from, Path toAbsolute, boolean printIfNew,
 			boolean overwrite)
 			throws IOException {
-		Path to = from.getParent().relativize(toAbsolute);
+		Path to = toAbsolute;
+		try {
+			to = from.getParent().relativize(toAbsolute);
+		} catch (IllegalArgumentException e) {
+			Main.log(1, "Can't make symlink relative: " + e.getMessage());
+		}
 		if (Files.isSymbolicLink(from)) {
 			if (!Files.readSymbolicLink(from).equals(to)) {
 				if (overwrite) {
@@ -292,7 +300,12 @@ public class Main {
 		} else {
 			if (printIfNew)
 				Main.logNoPrefix(0, "New link: " + from + " -> " + to);
-			Files.createSymbolicLink(from, to);
+			try {
+				Files.createSymbolicLink(from, to);
+			} catch (FileSystemException e) {
+				Main.log(0, "Could not create symlink: " + e.getMessage());
+				// throw (e);
+			}
 		}
 	}
 

@@ -8,21 +8,27 @@ It can then create a sorted folder structure consisting of symlinks, using the s
 
 ### Demo
 
-Input:
+##### Input:
 
 ![input directory](/screenshots/in1.png)
 
-Command:
+##### Command:
+
 ```
 $ java -jar moviesort.jar -in demo-input -out demo-output
 Warning: 17 min shorter than it should be (expected 100 min): Super Size Me (2004)[demo-input/Dokumentationen/Super SIze Me/gwl-ssm.avi]
 Identified 10/10 movies
 ```
-Output:
+(use `-v 2` to see the progress)
+
+##### Output:
 
 ![output directory](/screenshots/out1.png)
 
 ### Building / Running:
+A compiled version can be found in [releases](https://github.com/phiresky/fix-messy-movie-folder/releases).
+
+A ffprobe (ffmpeg) installation is optional, but recommended. On Windows, you will need admin rights to create symlinks.
 ```
 # compile
 gradle jar
