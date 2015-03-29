@@ -7,7 +7,6 @@ import static java.util.stream.Collectors.toList;
 import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.FileSystemException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -31,7 +30,7 @@ import com.beust.jcommander.ParameterException;
 
 public class Main {
 	private enum OutputAction {
-		SYMLINK, HARDLINK, COPY, MOVE;
+		SYMLINK, HARDLINK, COPY, MOVE, PRINTONLY;
 		void doAction(Path newLoc, Path oldLoc, boolean replaceExisting, boolean printCreatedFiles)
 				throws IOException {
 			CopyOption[] attrs = {};
@@ -73,7 +72,9 @@ public class Main {
 		}
 	}
 
-	@Parameter(required = true, names = "-in",
+	@Parameter(
+			required = true,
+			names = "-in",
 			description = "The input directories containing the files (can be multiple: -in dir1 dir2 dir3)",
 			variableArity = true)
 	private List<String> inputdirnames;
@@ -107,13 +108,18 @@ public class Main {
 			names = "-duplicates",
 			description = "What to do when a movie is found multiple times. By default, all copies are skipped as this might indicate split movie files. Allowed: skip_all, higher_bitrate, higher_resolution")
 	private DuplicateAction duplicateAction = DuplicateAction.SKIP_ALL;
+	@Parameter(names = { "-n", "-simulate" },
+			description = "Do nothing, print only")
+	private static boolean simulate = false;
 
 	private Map<Path, Path> originalRelativePaths = new HashMap<>();
 
 	void run() {
+		Files.simulate = simulate;
 		Stream<Path> inputfiles = inputdirnames
 				.stream()
 				.map(Paths::get)
+				.map(path -> path.toAbsolutePath())
 				.flatMap(
 						rootdir -> Util.walkMovies(rootdir).peek(
 								p -> originalRelativePaths.put(p,
@@ -177,16 +183,19 @@ public class Main {
 						info -> filename.apply(info) + MetadataCsvIdentifier.METADATA_SEPERATOR
 								+ info.getImdbId() + MetadataCsvIdentifier.METADATA_SEPERATOR
 								+ info.getPath());
-		metalines = Stream
-				.concat(Stream
-						.of("# this file is used by https://github.com/phiresky/fix-messy-movie-folder to easily identify movies",
-								"# filename, IMDb id, original filename"),
-						metalines);
-		Iterable<String> lineiter = metalines::iterator;
 		Path metadatafile = outputdir.resolve("all").resolve(
 				MetadataCsvIdentifier.METADATA_FILENAME);
+
+		if (!Files.isRegularFile(metadatafile))
+			metalines = Stream
+					.concat(Stream
+							.of("# this file is used by https://github.com/phiresky/fix-messy-movie-folder to easily identify movies",
+									"# filename, IMDb id, original filename"),
+							metalines);
+		Iterable<String> lineiter = metalines::iterator;
 		try {
-			Files.write(metadatafile, lineiter, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+			Files.write(metadatafile, lineiter, StandardOpenOption.CREATE,
+					StandardOpenOption.APPEND);
 			try {
 				Files.setAttribute(metadatafile, "dos:hidden", true);
 			} catch (FileSystemException e) {
@@ -260,7 +269,7 @@ public class Main {
 			Path origAlias = outputdir.resolve("by original structure").resolve(
 					originalRelativePaths.get(info.getPath()));
 			Files.createDirectories(origAlias.getParent());
-			makeSymlink(origAlias, allFile, false, overwrite);
+			makeSymlink(origAlias, allFile, action == OutputAction.PRINTONLY, overwrite);
 
 			for (Entry<String, Discretizer> property : properties.entrySet()) {
 				String propName = property.getKey();
@@ -270,7 +279,7 @@ public class Main {
 							val);
 					Files.createDirectories(dir);
 					makeSymlink(dir.resolve(outputFilename), allFile,
-							false, overwrite);
+							action == OutputAction.PRINTONLY, overwrite);
 				}
 			}
 		} catch (IOException e) {
@@ -292,7 +301,10 @@ public class Main {
 			if (!Files.readSymbolicLink(from).equals(to)) {
 				if (overwrite) {
 					Files.delete(from);
-					makeSymlink(from, toAbsolute, printIfNew, overwrite);
+					if (simulate)
+						Files.createSymbolicLink(from, to);
+					else
+						makeSymlink(from, toAbsolute, printIfNew, overwrite);
 				} else {
 					throw new IOException(from + " already exists and points to "
 							+ Files.readSymbolicLink(from) + " instead of " + to);

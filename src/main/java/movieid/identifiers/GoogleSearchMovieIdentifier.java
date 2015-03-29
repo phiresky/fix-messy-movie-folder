@@ -39,7 +39,7 @@ public class GoogleSearchMovieIdentifier extends FilenameMovieIdentifier {
 				}
 				return doc.select("h3 a[href*=//www.imdb.com/title/tt]").stream()
 						.map(ele -> ImdbId.fromUrl(ele.attr("abs:href")))
-						.filter(id -> id.getMovieInfo().get("Type").equals("movie")).findFirst();
+						.filter(id -> "movie".equals(id.getMovieInfo().get("Type"))).findFirst();
 			} catch (IOException e) {
 				Main.log(0, "could not get url " + url);
 				e.printStackTrace();
