@@ -116,6 +116,7 @@ public class Main {
 
 	void run() {
 		Files.simulate = simulate;
+		Files.printCalls = simulate || verbose >= 3;
 		Stream<Path> inputfiles = inputdirnames
 				.stream()
 				.map(Paths::get)
@@ -127,6 +128,8 @@ public class Main {
 		Path outputdir = Paths.get(outputdirname);
 		List<MovieInfo> allMovies = inputfiles.map(MovieIdentifier::tryAllIdentify)
 				.collect(toList());
+		// cache ffprobe json, so it's still there when moved
+		allMovies.stream().map(MovieInfo::getPath).forEach(FFProbeUtil::getJson);
 		List<MovieInfo> unfoundMovies = allMovies.stream().filter(i -> !i.hasMetadata())
 				.collect(toList());
 		if (unfoundMovies.size() > 0) {
@@ -192,9 +195,8 @@ public class Main {
 							.of("# this file is used by https://github.com/phiresky/fix-messy-movie-folder to easily identify movies",
 									"# filename, IMDb id, original filename"),
 							metalines);
-		Iterable<String> lineiter = metalines::iterator;
 		try {
-			Files.write(metadatafile, lineiter, StandardOpenOption.CREATE,
+			Files.write(metadatafile, metalines, StandardOpenOption.CREATE,
 					StandardOpenOption.APPEND);
 			try {
 				Files.setAttribute(metadatafile, "dos:hidden", true);
