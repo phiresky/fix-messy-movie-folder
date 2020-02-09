@@ -14,12 +14,14 @@ It can then create a sorted folder structure consisting of symlinks, using the s
 
 ##### Command:
 
+Get the jar from [here](https://github.com/phiresky/fix-messy-movie-folder/releases).
+
 ```
-$ java -jar moviesort.jar -in demo-input -out demo-output
+$ java -jar movieid-1.1.jar -in demo-input -out demo-output
 Warning: 17 min shorter than it should be (expected 100 min): Super Size Me (2004)[demo-input/Dokumentationen/Super SIze Me/gwl-ssm.avi]
 Identified 10/10 movies
 ```
-(use `-v 2` to see the progress)
+(use `-v 2` to see the progress, `-help` to see a full list of options)
 
 ##### Output:
 
